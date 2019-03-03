@@ -1,0 +1,129 @@
+//Christopher McNeely
+//Elegant Video and Soundworks
+
+//____Compiler Directives____
+
+#SYMBOL_NAME "Elegant XML - Manager v1.0"
+#ENABLE_STACK_CHECKING
+#ENABLE_TRACE
+#DEFAULT_VOLATILE
+#CATEGORY "46" "Elegant Modules"
+#HELP_PDF_FILE "Elegant XML - Manager v1.0.pdf"
+
+#INCLUDEPATH ""
+#USER_SIMPLSHARP_LIBRARY "ElegantXMLv1.0"
+
+#Help_Begin
+
+#Help_End
+
+//____Inputs/Outputs
+DIGITAL_INPUT _SKIP_,_SKIP_,_SKIP_,LoadFile, SaveFile,_SKIP_,EnableDebug;
+DIGITAL_OUTPUT _SKIP_,_SKIP_,_SKIP_,IsLoading, LoadSuccessPulse, LoadFailurePulse,_SKIP_, IsSaveNeeded, IsSaving, SaveSuccessPulse, SaveFailurePulse, _SKIP_;
+ANALOG_OUTPUT Progress;
+STRING_OUTPUT _SKIP_,ErrorMessage;
+
+STRING_PARAMETER FileName[100], RootElement[20];
+INTEGER_PARAMETER ManagerID;
+#BEGIN_PARAMETER_PROPERTIES ManagerID
+    propValidUnits = unitDecimal;
+    propDefaultUnit = unitDecimal;
+    propDefaultValue = 1d;    
+    propList = {1d, "Processor 1"}, {2d, "Processor 2"}, {3d, "Processor 3"}, {4d, "Processor 4"}, {5d, "Processor 5"};
+#END_PARAMETER_PROPERTIES
+#BEGIN_PARAMETER_PROPERTIES RootElement
+    propValidUnits = unitString;
+    propDefaultUnit = unitString;
+    propDefaultValue = "Config";
+#END_PARAMETER_PROPERTIES
+
+
+//Class_Name Local_Name
+Manager xmlManager;
+  
+  
+//____Global Variables____
+
+//____Functions____
+callback function ProcessIsSaving(integer state)
+{
+    IsSaving = state;
+}
+callback function ProcessIsLoading(integer state)
+{
+    IsLoading = state;
+}
+callback function ProcessProgress(integer percent)
+{
+    Progress = percent;   
+}
+callback function ProcessLoadSuccess()
+{
+    Pulse(10, LoadSuccessPulse);
+}
+callback function ProcessSaveSuccess()
+{
+    Pulse(10, SaveSuccessPulse);
+}
+callback function ProcessLoadFailure(string message)
+{
+    ErrorMessage = message;
+    Pulse(10, LoadFailurePulse);
+}
+callback function ProcessSaveFailure(string message)
+{
+    ErrorMessage = message;
+    Pulse(10, SaveFailurePulse);
+}
+
+callback function ProcessIsSaveRequired(integer state)
+{
+    IsSaveNeeded = state;
+}
+
+//____Events____
+
+PUSH LoadFile
+{
+    if(IsLoading = 1 || IsSaving = 1)
+    {
+         return;
+    }
+    ErrorMessage = "";
+    xmlManager.LoadFile();
+}
+
+PUSH SaveFile
+{
+    if(IsLoading = 1 || IsSaving = 1)
+    {
+         return;
+    }
+    ErrorMessage = "";
+    xmlManager.SaveFile();
+}
+
+PUSH EnableDebug
+{
+   xmlManager.DebugOn();
+}
+
+RELEASE EnableDebug
+{
+   xmlManager.DebugOff();
+}
+
+
+//____Start-Up Code____
+FUNCTION Main() {
+    xmlManager.Initialize(ManagerID, FileName, RootElement);
+    RegisterDelegate(xmlManager, IsLoading, ProcessIsLoading);
+    RegisterDelegate(xmlManager, IsSaving, ProcessIsSaving);
+    RegisterDelegate(xmlManager, ReportProgress, ProcessProgress);
+    RegisterDelegate(xmlManager, SaveFailure, ProcessSaveFailure);
+    RegisterDelegate(xmlManager, SaveSuccess, ProcessSaveSuccess);
+    RegisterDelegate(xmlManager, LoadFailure, ProcessLoadFailure);
+    RegisterDelegate(xmlManager, LoadSuccess, ProcessLoadSuccess);
+    RegisterDelegate(xmlManager, IsSaveRequired, ProcessIsSaveRequired);
+    WaitForInitializationComplete();
+}

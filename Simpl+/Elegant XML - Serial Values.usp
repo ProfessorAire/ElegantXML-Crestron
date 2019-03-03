@@ -1,0 +1,81 @@
+//Christopher McNeely
+//Elegant Video and Soundworks
+
+//____Compiler Directives____
+
+#SYMBOL_NAME "Elegant XML - Serial Values v1.0"
+#ENABLE_STACK_CHECKING
+#ENABLE_TRACE
+#DEFAULT_VOLATILE
+#CATEGORY "46" "Elegant Modules"
+#DEFINE_CONSTANT MaxItems 50
+#ANALOG_SERIAL_EXPAND AllWithAny
+#HELP_PDF_FILE "Elegant XML - Serial Values v1.0.pdf"
+
+#INCLUDEPATH ""
+#USER_SIMPLSHARP_LIBRARY "ElegantXMLv1.0"
+
+#Help_Begin
+
+#Help_End
+
+//____Inputs/Outputs
+STRING_INPUT _SKIP_,_SKIP_,_SKIP_, InputValue[MaxItems][1500];
+DIGITAL_OUTPUT _SKIP_,IsInitialized,_SKIP_;
+STRING_OUTPUT OutputValue[MaxItems];
+INTEGER_PARAMETER ManagerID;
+STRING_PARAMETER _SKIP_,_SKIP_,XmlPath[MaxItems][512];
+#BEGIN_PARAMETER_PROPERTIES ManagerID
+    propValidUnits = unitDecimal;
+    propDefaultUnit = unitDecimal;
+    propDefaultValue = 1d;    
+    propList = {1d, "Processor 1"}, {2d, "Processor 2"}, {3d, "Processor 3"}, {4d, "Processor 4"}, {5d, "Processor 5"};
+#END_PARAMETER_PROPERTIES
+
+SerialProcessor processor;
+
+//____Functions____
+callback function ProcessValueChange(integer id, string value)
+{
+    OutputValue[id] = value;
+}
+
+callback function ProcessIsInitialized(integer state)
+{
+    IsInitialized = state;
+}
+
+//____Events____
+
+//PUSH
+//RELEASE
+CHANGE InputValue
+{
+    string temp[1500];
+    integer i;
+    i = GetLastModifiedArrayIndex();
+    processor.UpdateValue(i, InputValue[i]);
+}
+//EVENT
+
+//____Start-Up Code____
+FUNCTION Main() {
+    integer i;
+    WaitForInitializationComplete();
+    while(processor.IsManagerReady(ManagerID) = 0)
+    {
+         Delay(1000);
+    }
+    RegisterDelegate(processor, ReportValueChange, ProcessValueChange);
+    RegisterDelegate(processor, ReportIsInitialized, ProcessIsInitialized);
+    for(i = 1 to MaxItems)
+    {
+        if(IsSignalDefined(OutputValue[i]) && XmlPath[i] <> "")
+        {
+             processor.AddValue(i, XmlPath[i], InputValue[i]);
+        }
+    }
+    processor.Sort();   
+    
+    processor.Initialize(ManagerID);
+}
