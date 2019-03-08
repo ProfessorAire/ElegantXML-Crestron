@@ -334,3 +334,14 @@ ASALocalRun/
 .localhistory/
 
 /Simpl+/SplsWork
+
+/Samples/*.zip
+/Samples/*.sm2
+/Samples/*.ASV
+/Samples/SplsWork
+/Samples/*.vta
+/Samples/*.c3prj
+/Samples/*.hash
+/Samples/*.smft
+/Samples/*.sig
+/Samples/*.lpz

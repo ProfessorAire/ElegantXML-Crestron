@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Config>
+	<Demo>
+		<Modules>
+			<Module Id="1" Value="65535" IsVisible="True" Name="Value 1" />
+			<Module Id="2" Value="0" IsVisible="True" Name="Value 2" />
+			<Module Id="3" Value="34500" IsVisible="True" Name="Value 3" />
+			<Module Id="4" Value="1200" IsVisible="True" Name="Value 4" />
+			<Module Id="5" Value="8793" IsVisible="True" Name="Value 5" />
+			<Module Id="6" Value="56789" IsVisible="True" Name="Value 6" />
+			<Module Id="7" Value="-300" IsVisible="True" Name="Value 7" />
+			<Module Id="8" Value="-200" IsVisible="True" Name="Value 8" />
+			<Module Id="9" Value="-100" IsVisible="True" Name="Value 9" />
+			<Module Id="10" Value="0" IsVisible="True" Name="Value 10" />
+			<Module Id="11" Value="100" IsVisible="True" Name="Value 11" />
+			<Module Id="12" Value="40" IsVisible="True" Name="Value 12" />
+		</Modules>
+		<Digitals>
+			<Digital Id="1" Name="Option 1" IsToggled="True" />
+			<Digital Id="2" Name="Option 2" IsToggled="True" />
+			<Digital Id="3" Name="Option 3" IsToggled="True" />
+			<Digital Id="4" Name="Option 4" IsToggled="True" />
+			<Digital Id="5" Name="Option 5" IsToggled="True" />
+			<Digital Id="6" Name="Option 6" IsToggled="False" />
+			<Digital Id="7" Name="Option 7" IsToggled="True" />
+			<Digital Id="8" Name="Option 8" IsToggled="True" />
+			<Digital Id="9" Name="Option 9" IsToggled="True" />
+			<Digital Id="10" Name="Option 10" IsToggled="False" />
+			<Digital Id="11" Name="Option 11" IsToggled="False" />
+			<Digital Id="12" Name="Option 12" IsToggled="False" />
+			<Digital Id="13" Name="Option 13" IsToggled="False" />
+		</Digitals>
+	</Demo>
+</Config>
