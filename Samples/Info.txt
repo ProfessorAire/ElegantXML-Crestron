@@ -1,3 +1,5 @@
+DEMO PROJECT INFORMATION
+
 The Xpanel runs on IPID 50.
 
 The XML file should be located on the processor under: User/Config/App#, where App# = the processor slot you're running the program on. If you don't place an XML file on the processor, you can save a new one with the information you fill in on the XPanel.
