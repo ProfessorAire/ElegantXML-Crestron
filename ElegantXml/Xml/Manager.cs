@@ -34,6 +34,11 @@ namespace ElegantXml.Xml
         private List<SerialProcessor> SerialProcessors { get; set; }
 
         /// <summary>
+        /// Private XDocument used to perform operations on the XML file.
+        /// </summary>
+        private XDocument XmlDoc { get; set; }
+
+        /// <summary>
         /// The name of the root element of the XML file.
         /// </summary>
         private string RootElement { get; set; }
@@ -165,6 +170,7 @@ namespace ElegantXml.Xml
                     {
                         Debug.PrintLine("Couldn't find configuration file: " + fileName);
                         Debug.PrintLine("Created new blank configuration file");
+                        SaveFile();
                     }
                 }
                 catch (Exception ex)
@@ -263,7 +269,14 @@ namespace ElegantXml.Xml
                 XDocument doc = null;
                 try
                 {
-                    var content = Crestron.SimplSharp.CrestronIO.File.ReadToEnd(FilePath, Encoding.UTF8);
+                    var content = File.ReadToEnd(FilePath, Encoding.UTF8);
+                    if (content == "")
+                    {
+                        Debug.PrintLine("Empty file found.\nSaving defaults to file to create structure.");
+                        this.SaveFile();
+                        Debug.PrintLine("Default file created.");
+                        return;
+                    }
                     var start = content.IndexOf("<?xml", 0);
                     if (start < 0)
                     {
@@ -382,6 +395,7 @@ namespace ElegantXml.Xml
                         }
                     }
                 }
+                XmlDoc = doc;
             }
             CrestronConsole.PrintLine(DateTime.Now.ToShortDateString() + "|" + DateTime.Now.ToLongTimeString() + "|Finished loading xml file:" + FileName);
             LoadSuccess();
@@ -456,39 +470,59 @@ namespace ElegantXml.Xml
         {
             IsSaving(1);
             CrestronConsole.PrintLine(DateTime.Now.ToShortDateString() + "|" + DateTime.Now.ToLongTimeString() + "|Starting XML file saving for file: " + FilePath);
+
             using (var secure = new CCriticalSection())
             {
-                var builder = new XmlBuilder(RootElement);
-                if (!builder.WriteDigitals(DigitalProcessors))
+                XmlBuilder builder = null;
+                if (XmlDoc != null)
                 {
-                    SaveFailure("Unable to write all Digital elements.");
-                    Debug.PrintLine("Unable to write all Digital elements.");
-                    IsSaving(0);
-                    return;
+                    builder = new XmlBuilder(RootElement, XmlDoc);
+                }
+                else
+                {
+                    builder = new XmlBuilder(RootElement);
+                }
+                if (DigitalProcessors != null && DigitalProcessors.Count > 0)
+                {
+                    if (!builder.WriteDigitals(DigitalProcessors))
+                    {
+                        SaveFailure("Unable to write all Digital elements.");
+                        Debug.PrintLine("Unable to write all Digital elements.");
+                        IsSaving(0);
+                        return;
 
+                    }
                 }
-                if (!builder.WriteAnalogs(AnalogProcessors))
+                if (AnalogProcessors != null && AnalogProcessors.Count > 0)
                 {
-                    SaveFailure("Unable to write all Analog elements.");
-                    Debug.PrintLine("Unable to write all Analog elements.");
-                    IsSaving(0);
-                    return;
+                    if (!builder.WriteAnalogs(AnalogProcessors))
+                    {
+                        SaveFailure("Unable to write all Analog elements.");
+                        Debug.PrintLine("Unable to write all Analog elements.");
+                        IsSaving(0);
+                        return;
+                    }
                 }
-                if (!builder.WriteSignedAnalogs(SignedAnalogProcessors))
+                if (SignedAnalogProcessors != null && SignedAnalogProcessors.Count > 0)
                 {
-                    SaveFailure("Unable to write all Signed Analog elements.");
-                    Debug.PrintLine("Unable to write all Signed Analog elements.");
-                    IsSaving(0);
-                    return;
+                    if (!builder.WriteSignedAnalogs(SignedAnalogProcessors))
+                    {
+                        SaveFailure("Unable to write all Signed Analog elements.");
+                        Debug.PrintLine("Unable to write all Signed Analog elements.");
+                        IsSaving(0);
+                        return;
+                    }
                 }
-                if (!builder.WriteSerials(SerialProcessors))
+                if (SerialProcessors != null && SerialProcessors.Count > 0)
                 {
-                    SaveFailure("Unable to write all Serial elements.");
-                    Debug.PrintLine("Unable to write all Serial elements.");
-                    IsSaving(0);
-                    return;
+                    if (!builder.WriteSerials(SerialProcessors))
+                    {
+                        SaveFailure("Unable to write all Serial elements.");
+                        Debug.PrintLine("Unable to write all Serial elements.");
+                        IsSaving(0);
+                        return;
+                    }
                 }
-
                 try
                 {
                     if (builder.Save(FilePath))
@@ -497,6 +531,7 @@ namespace ElegantXml.Xml
                         SaveSuccess();
                         IsSaving(0);
                         IsSaveRequired(0);
+                        XmlDoc = builder.Document;
                         return;
                     }
                     else

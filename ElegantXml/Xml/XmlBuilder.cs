@@ -14,9 +14,14 @@ namespace ElegantXml.Xml
     public class XmlBuilder
     {
         /// <summary>
+        /// Internal value to hold Document property value.
+        /// </summary>
+        private XDocument document = null;
+
+        /// <summary>
         /// The document class the builder writes to in memory.
         /// </summary>
-        public XDocument Document { get; set; }
+        public XDocument Document { get { return document; } }
 
         /// <summary>
         /// Creates a new builder.
@@ -26,8 +31,34 @@ namespace ElegantXml.Xml
         /// There should only be one root element in an XML document.</param>
         public XmlBuilder(string rootElementName)
         {
-            Document = new XDocument();
+            document = new XDocument();
             Document.Add(new XElement(rootElementName));
+        }
+
+        /// <summary>
+        /// Creates a new builder.
+        /// </summary>
+        /// <param name="rootElementName">This is the name of the root element, which contains the whole XML structure.
+        /// This is not the ?xml element that denotes an XML document, but the first element immediately following.
+        /// There should only be one root element in an XML document.</param>
+        /// <param name="xDocument">The XDocument to write into.</param>
+        public XmlBuilder(string rootElementName, XDocument xDocument)
+        {
+            if (xDocument == null)
+            {
+                throw new NullReferenceException("Empty XDocument provided to XmlBuilder. Unable to create the object.");
+            }
+
+            if (xDocument.Root.Name != rootElementName)
+            {
+                Debug.PrintLine("Unable to verify XDocument's root element. This document will not be used and a new document will be created.");
+                document = new XDocument();
+                Document.Add(new XElement(rootElementName));
+            }
+            else
+            {
+                document = xDocument;
+            }
         }
 
         /// <summary>
@@ -209,13 +240,35 @@ namespace ElegantXml.Xml
         /// <returns>True if successful, false if it fails.</returns>
         public bool WriteElement(IElement item)
         {
+            if (item == null)
+            {
+                Debug.PrintLine("Item is null! Cannot process null reference.");
+                return false;
+            }
             var name = "";
             var parts = item.AttributePath.Split('.');
             var attribute = "";
             var value = "";
             string[] slice = null;
             XElement element = null;
+            if (Document == null)
+            {
+                Debug.PrintLine("Document is null! Cannot process saving XML Document.");
+                return false;
+            }
+            else if (Document.Root == null)
+            {
+                Debug.PrintLine("Document.Root is null! Cannot process saving XML Document.");
+                return false;
+            }
             var current = Document.Root;
+
+            if (parts == null)
+            {
+                Debug.PrintLine("Parts is null! Cannot process saving XML Document.");
+                return false;
+            }
+
             for (var i = 0; i < parts.Length - 1; i++)
             {
                 element = null;
@@ -290,7 +343,14 @@ namespace ElegantXml.Xml
             try
             {
                 attribute = parts.Last().Replace(" ", "");
-                current.Add(new XAttribute(attribute, item.GetAttributeValue()));
+                if (current != null && current.HasAttributes && current.Attributes(attribute).Count() > 0)
+                {
+                    current.Attribute(attribute).Value = item.GetAttributeValue();
+                }
+                else
+                {
+                    current.Add(new XAttribute(attribute, item.GetAttributeValue()));
+                }
             }
             catch (Exception ex)
             {
