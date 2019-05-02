@@ -162,3 +162,7 @@
   Val5=5d
   Lbl5=Processor 5
 [END]
+[BEGIN]
+ObjTp=Status
+HeaderCompatible=False
+[END]
