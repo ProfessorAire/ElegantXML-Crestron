@@ -332,8 +332,8 @@ namespace ElegantXml.Xml
                             }
                             catch
                             {
-                                LoadFailure("Error processing analog value for path: " + DigitalProcessors[i].Elements[j].AttributePath);
-                                Debug.PrintLine("Error processing analog value for path: " + DigitalProcessors[i].Elements[j].AttributePath);
+                                LoadFailure("Error processing analog value for path: " + AnalogProcessors[i].Elements[j].AttributePath);
+                                Debug.PrintLine("Error processing analog value for path: " + AnalogProcessors[i].Elements[j].AttributePath);
                             }
                             current += step;
                             YieldProgress(current);
@@ -353,8 +353,8 @@ namespace ElegantXml.Xml
                             }
                             catch
                             {
-                                LoadFailure("Error processing signed analog value for path: " + DigitalProcessors[i].Elements[j].AttributePath);
-                                Debug.PrintLine("Error processing signed analog value for path: " + DigitalProcessors[i].Elements[j].AttributePath);
+                                LoadFailure("Error processing signed analog value for path: " + SignedAnalogProcessors[i].Elements[j].AttributePath);
+                                Debug.PrintLine("Error processing signed analog value for path: " + SignedAnalogProcessors[i].Elements[j].AttributePath);
                             }
                             current += step;
                             YieldProgress(current);
@@ -374,8 +374,8 @@ namespace ElegantXml.Xml
                             }
                             catch
                             {
-                                LoadFailure("Error processing serial value for path: " + DigitalProcessors[i].Elements[j].AttributePath);
-                                Debug.PrintLine("Error processing serial value for path: " + DigitalProcessors[i].Elements[j].AttributePath);
+                                LoadFailure("Error processing serial value for path: " + SerialProcessors[i].Elements[j].AttributePath);
+                                Debug.PrintLine("Error processing serial value for path: " + SerialProcessors[i].Elements[j].AttributePath);
                             }
                             current += step;
                             YieldProgress(current);
