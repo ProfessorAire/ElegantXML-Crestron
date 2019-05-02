@@ -3,7 +3,7 @@
 
 //____Compiler Directives____
 
-#SYMBOL_NAME "Elegant XML - Signed Analog Values v1.0"
+#SYMBOL_NAME "Elegant XML - Signed Analog Values v1.1"
 #ENABLE_STACK_CHECKING
 #ENABLE_TRACE
 #DEFAULT_VOLATILE
@@ -13,7 +13,7 @@
 #HELP_PDF_FILE "Elegant XML - Signed Analog Values v1.0.pdf"
 
 #INCLUDEPATH ""
-#USER_SIMPLSHARP_LIBRARY "ElegantXMLv1.0"
+#USER_SIMPLSHARP_LIBRARY "ElegantXMLv1.1"
 
 #Help_Begin
 

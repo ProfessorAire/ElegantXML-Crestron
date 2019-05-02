@@ -3,15 +3,15 @@
 
 //____Compiler Directives____
 
-#SYMBOL_NAME "Elegant XML - Manager v1.0"
+#SYMBOL_NAME "Elegant XML - Manager v1.1"
 #ENABLE_STACK_CHECKING
 #ENABLE_TRACE
 #DEFAULT_VOLATILE
 #CATEGORY "46" "Elegant Modules"
-#HELP_PDF_FILE "Elegant XML - Manager v1.0.pdf"
+#HELP_PDF_FILE "Elegant XML - Manager v1.1.pdf"
 
 #INCLUDEPATH ""
-#USER_SIMPLSHARP_LIBRARY "ElegantXMLv1.0"
+#USER_SIMPLSHARP_LIBRARY "ElegantXMLv1.1"
 
 #Help_Begin
 
