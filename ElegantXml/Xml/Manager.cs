@@ -34,6 +34,11 @@ namespace ElegantXml.Xml
         private List<SerialProcessor> SerialProcessors { get; set; }
 
         /// <summary>
+        /// Private XDocument used to perform operations on the XML file.
+        /// </summary>
+        private XDocument XmlDoc { get; set; }
+
+        /// <summary>
         /// The name of the root element of the XML file.
         /// </summary>
         private string RootElement { get; set; }
@@ -461,6 +466,7 @@ namespace ElegantXml.Xml
                         }
                     }
                 }
+                XmlDoc = doc;
             }
             finally
             {
@@ -563,7 +569,15 @@ namespace ElegantXml.Xml
             try
             {
                 CMonitor.Enter(_crit);
-                var builder = new XmlBuilder(RootElement);
+                XmlBuilder builder = null;
+                if (XmlDoc != null)
+                {
+                    builder = new XmlBuilder(RootElement, XmlDoc);
+                }
+                else
+                {
+                    builder = new XmlBuilder(RootElement);
+                }
                 builder.PathDelimiter = PathDelimiter;
                 if (DigitalProcessors != null && !builder.WriteDigitals(DigitalProcessors))
                 {
