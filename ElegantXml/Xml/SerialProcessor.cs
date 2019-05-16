@@ -31,10 +31,13 @@ namespace ElegantXml.Xml
         /// </summary>
         public ReportIsInitializedDelegate ReportIsInitialized { get; set; }
 
+        private object _crit = new Object();
+
         /// <summary>
         /// Used by Simpl+.
         /// </summary>
         public SerialProcessor()
+            : base()
         {
             Elements = new List<SerialElement>();
         }
@@ -47,11 +50,51 @@ namespace ElegantXml.Xml
         /// <param name="defaultValue">The default value of the element.</param>
         public void AddValue(ushort elementID, string elementPath, string defaultValue)
         {
-            using (var secure = new CCriticalSection())
+            try
             {
+                CMonitor.Enter(_crit);
                 var element = new SerialElement(elementID, elementPath);
                 element.AttributeValue = defaultValue;
                 Elements.Add(element);
+            }
+            finally
+            {
+                CMonitor.Exit(_crit);
+            }
+        }
+
+        /// <summary>
+        /// Adds an item to the processor's list of elements. Attempts to parse the path for a default value.
+        /// </summary>
+        /// <param name="elementID">The 1-based ID of the element, which should match the Simpl+ module parameter's index.</param>
+        /// <param name="elementPath">The path provided by the Simpl+ module parameter.</param>
+        public void AddValueWithDefaultInPath(ushort elementID, string elementPath)
+        {
+            try
+            {
+                CMonitor.Enter(_crit);
+                var path = elementPath;
+                var isElement = false;
+                string defaultValue = "";
+                if (elementPath.Contains(DefaultValueDelimiter))
+                {
+                    path = elementPath.Split(DefaultValueDelimiter)[0];
+                    Debug.PrintLine("Element " + elementID + "'s Path = " + path);
+                    try
+                    {
+                        defaultValue = elementPath.Split(DefaultValueDelimiter)[1];
+                        isElement = true;
+                        Debug.PrintLine("Element " + elementID + "'s DefaultValue = " + defaultValue);
+                    }
+                    catch { Debug.PrintLine("Couldn't parse default serial value from: " + elementPath); }
+                }
+                var element = new SerialElement(elementID, path, defaultValue);
+                element.IsElement = isElement;
+                Elements.Add(element);
+            }
+            finally
+            {
+                CMonitor.Exit(_crit);
             }
         }
 
@@ -75,17 +118,22 @@ namespace ElegantXml.Xml
                 Debug.PrintLine("Couldn't update value for String element. The index was invalid.");
                 return;
             }
-            using (var secure = new CCriticalSection())
+            try
             {
+                CMonitor.Enter(_crit);
                 var element = Elements.Where((e) => e.ID == elementID).First();
                 if (element == null)
                 {
-                    //CrestronConsole.PrintLine("Couldn't find element to update Serial value on.");
+                    Debug.PrintLine("Couldn't find element to update Serial value on.");
                     return;
                 }
                 element.AttributeValue = value;
                 ReportValueChange(elementID, element.AttributeValue);
                 manager.IsSaveRequired(1);
+            }
+            finally
+            {
+                CMonitor.Exit(_crit);
             }
         }
 
@@ -101,6 +149,10 @@ namespace ElegantXml.Xml
             if (man != null)
             {
                 man.AddSerial(this);
+            }
+            else
+            {
+                return;
             }
             IsInitialized = true;
             ReportIsInitialized(1);

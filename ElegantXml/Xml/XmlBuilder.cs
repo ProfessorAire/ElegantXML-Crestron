@@ -19,6 +19,11 @@ namespace ElegantXml.Xml
         public XDocument Document { get; set; }
 
         /// <summary>
+        /// The delimiter used when splitting paths.
+        /// </summary>
+        public char PathDelimiter { get; set; }
+
+        /// <summary>
         /// Creates a new builder.
         /// </summary>
         /// <param name="rootElementName">This is the name of the root element, which contains the whole XML structure.
@@ -28,6 +33,7 @@ namespace ElegantXml.Xml
         {
             Document = new XDocument();
             Document.Add(new XElement(rootElementName));
+            PathDelimiter = '.';
         }
 
         /// <summary>
@@ -209,14 +215,17 @@ namespace ElegantXml.Xml
         /// <returns>True if successful, false if it fails.</returns>
         public bool WriteElement(IElement item)
         {
+            Debug.PrintLine("Writing path: " + item.AttributePath + " with the value: " + item.GetAttributeValue());
             var name = "";
-            var parts = item.AttributePath.Split('.');
+            var parts = item.AttributePath.Split(PathDelimiter);
+            Debug.PrintLine("PathDelimiter: " + PathDelimiter);
+            Debug.PrintLine("Path quantity: " + parts.Length);
             var attribute = "";
             var value = "";
             string[] slice = null;
             XElement element = null;
             var current = Document.Root;
-            for (var i = 0; i < parts.Length - 1; i++)
+            for (var i = 0; i < (item.IsElement ? parts.Length : parts.Length - 1); i++)
             {
                 element = null;
                 name = "";
@@ -224,6 +233,7 @@ namespace ElegantXml.Xml
                 value = "";
                 if (parts[i].Contains(" "))
                 {
+                    Debug.PrintLine("Complex element.");
                     //This is a complex element. It has an inline attribute to identify the element. (eg: Element id="Element1")
                     try
                     {
@@ -247,7 +257,7 @@ namespace ElegantXml.Xml
                             element = new XElement(name);
                             element.Add(new XAttribute(attribute, value));
                         }
-
+                        Debug.PrintLine("Adding element: " + element.Name);
                         current.Add(element);
                         current = element;
                     }
@@ -260,6 +270,7 @@ namespace ElegantXml.Xml
                 }
                 else
                 {
+                    Debug.PrintLine("Simple Element.");
                     //This should be a simple element. It has no line attribute to identify the element. (eg: Element)
                     try
                     {
@@ -275,7 +286,7 @@ namespace ElegantXml.Xml
                         {
                             element = new XElement(name);
                         }
-
+                        Debug.PrintLine("Adding element: " + element.Name);
                         current.Add(element);
                         current = element;
                     }
@@ -289,8 +300,19 @@ namespace ElegantXml.Xml
             }
             try
             {
-                attribute = parts.Last().Replace(" ", "");
-                current.Add(new XAttribute(attribute, item.GetAttributeValue()));
+                if (item.IsElement)
+                {
+                    //var el = new XElement(parts[parts.Length - 1]);
+                    current.Value = item.GetAttributeValue();
+                    //current.Add(el);
+                    Debug.PrintLine("Item is an element " + current.Name + " with the value " + current.Value + ".");
+                }
+                else
+                {
+                    attribute = parts.Last().Replace(" ", "");
+                    current.Add(new XAttribute(attribute, item.GetAttributeValue()));
+                    Debug.PrintLine("Item is an attribute " + attribute + " with the value " + item.GetAttributeValue());
+                }
             }
             catch (Exception ex)
             {

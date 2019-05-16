@@ -31,10 +31,13 @@ namespace ElegantXml.Xml
         /// </summary>
         public ReportIsInitializedDelegate ReportIsInitialized { get; set; }
 
+        private object _crit = new Object();
+
         /// <summary>
         /// Used by Simpl+.
         /// </summary>
         public SignedAnalogProcessor()
+            : base()
         {
             Elements = new List<SignedAnalogElement>();
         }
@@ -47,11 +50,51 @@ namespace ElegantXml.Xml
         /// <param name="defaultValue">The default value of the element.</param>
         public void AddValue(ushort elementID, string elementPath, short defaultValue)
         {
-            using (var secure = new CCriticalSection())
+            try
             {
+                CMonitor.Enter(_crit);
                 var element = new SignedAnalogElement(elementID, elementPath);
                 element.AttributeValue = defaultValue;
                 Elements.Add(element);
+            }
+            finally
+            {
+                CMonitor.Exit(_crit);
+            }
+        }
+
+        /// <summary>
+        /// Adds an item to the processor's list of elements. Attempts to parse the path for a default value.
+        /// </summary>
+        /// <param name="elementID">The 1-based ID of the element, which should match the Simpl+ module parameter's index.</param>
+        /// <param name="elementPath">The path provided by the Simpl+ module parameter.</param>
+        public void AddValueWithDefaultInPath(ushort elementID, string elementPath)
+        {
+            try
+            {
+                CMonitor.Enter(_crit);
+                var path = elementPath;
+                var isElement = false;
+                short defaultValue = 0;
+                if (elementPath.Contains(DefaultValueDelimiter))
+                {
+                    path = elementPath.Split(DefaultValueDelimiter)[0];
+                    Debug.PrintLine("Element " + elementID + "'s Path = " + path);
+                    try
+                    {
+                        defaultValue = short.Parse(elementPath.Split(DefaultValueDelimiter)[1]);
+                        isElement = true;
+                        Debug.PrintLine("Element " + elementID + "'s DefaultValue = " + defaultValue);
+                    }
+                    catch { Debug.PrintLine("Couldn't parse default signed analog value from: " + elementPath); }
+                }
+                var element = new SignedAnalogElement(elementID, path, defaultValue);
+                element.IsElement = isElement;
+                Elements.Add(element);
+            }
+            finally
+            {
+                CMonitor.Exit(_crit);
             }
         }
 
@@ -72,20 +115,25 @@ namespace ElegantXml.Xml
         {
             if (elementID < 1)
             {
-                CrestronConsole.PrintLine("Couldn't update value for element, due to null values.");
+                CrestronConsole.PrintLine("Couldn't update value for SignedAnalog element. The index was invalid.");
                 return;
             }
-            using (var secure = new CCriticalSection())
+            try
             {
+                CMonitor.Enter(_crit);
                 var element = Elements.Where((e) => e.ID == elementID).First();
                 if (element == null)
                 {
-                    //CrestronConsole.PrintLine("Couldn't find element to update Signed Analog value on.");
+                    Debug.PrintLine("Couldn't find element to update Signed Analog value on.");
                     return;
                 }
                 element.AttributeValue = value;
                 ReportValueChange(elementID, element.AttributeValue);
                 manager.IsSaveRequired(1);
+            }
+            finally
+            {
+                CMonitor.Exit(_crit);
             }
         }
 
@@ -99,10 +147,12 @@ namespace ElegantXml.Xml
             try
             {
                 UpdateValue(elementID, short.Parse(value));
+                return;
             }
-            catch
+            catch(Exception ex)
             {
-                //CrestronConsole.PrintLine("Couldn't update Signed Analog value.");
+                Debug.PrintLine("Exception ocurred while updating Analog value.");
+                Debug.PrintLine(ex.Message);
             }
         }
 

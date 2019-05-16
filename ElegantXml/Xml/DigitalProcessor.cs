@@ -31,10 +31,12 @@ namespace ElegantXml.Xml
         /// </summary>
         public ReportIsInitializedDelegate ReportIsInitialized { get; set; }
 
+        private object _crit = new Object();
+
         /// <summary>
         /// Used by Simpl+.
         /// </summary>
-        public DigitalProcessor()
+        public DigitalProcessor() : base()
         {
             Elements = new List<DigitalElement>();
         }
@@ -47,11 +49,61 @@ namespace ElegantXml.Xml
         /// <param name="defaultValue">The default value of the element.</param>
         public void AddValue(ushort elementID, string elementPath, ushort defaultValue)
         {
-            using (var secure = new CCriticalSection())
+            try
             {
+                CMonitor.Enter(_crit);
                 var element = new DigitalElement(elementID, elementPath);
                 element.AttributeValue = defaultValue > 0 ? true : false;
                 Elements.Add(element);
+            }
+            finally
+            {
+                CMonitor.Exit(_crit);
+            }
+        }
+
+        /// <summary>
+        /// Adds an item to the processor's list of elements. Attempts to parse the path for a default value.
+        /// </summary>
+        /// <param name="elementID">The 1-based ID of the element, which should match the Simpl+ module parameter's index.</param>
+        /// <param name="elementPath">The path provided by the Simpl+ module parameter.</param>
+        public void AddValueWithDefaultInPath(ushort elementID, string elementPath)
+        {
+            try
+            {
+                CMonitor.Enter(_crit);
+                var path = elementPath;
+                var isElement = false;
+                bool defaultValue = false;
+                if (elementPath.Contains(DefaultValueDelimiter))
+                {
+                    path = elementPath.Split(DefaultValueDelimiter)[0];
+                    try
+                    {
+                        var val = elementPath.Split(DefaultValueDelimiter)[1];
+                        if (val.ToLower() == "true" || val.ToLower() == "false")
+                        {
+                            defaultValue = val.ToLower() == "true" ? true : false;
+                        }
+                        else if (val == "0" || val == "1")
+                        {
+                            defaultValue = val == "1" ? true : false;
+                        }
+                        else
+                        {
+                            defaultValue = bool.Parse(elementPath.Split(DefaultValueDelimiter)[1]);
+                        }
+                        isElement = true;
+                    }
+                    catch { Debug.PrintLine("Couldn't parse default digital value from: " + elementPath); }
+                }
+                var element = new DigitalElement(elementID, path, defaultValue);
+                element.IsElement = isElement;
+                Elements.Add(element);
+            }
+            finally
+            {
+                CMonitor.Exit(_crit);
             }
         }
 
@@ -66,8 +118,9 @@ namespace ElegantXml.Xml
                 Debug.PrintLine("Couldn't toggle value for element. The index was invalid.");
                 return;
             }
-            using (var secure = new CCriticalSection())
+            try
             {
+                CMonitor.Enter(_crit);
                 var element = Elements.Where((e) => e.ID == elementID).First();
                 if (element != null)
                 {
@@ -75,6 +128,10 @@ namespace ElegantXml.Xml
                 }
                 ReportValueChange(elementID, element.AttributeValue == true ? (ushort)1 : (ushort)0);
                 manager.IsSaveRequired(1);
+            }
+            finally
+            {
+                CMonitor.Exit(_crit);
             }
 
         }
@@ -91,8 +148,9 @@ namespace ElegantXml.Xml
                 Debug.PrintLine("Couldn't update value for Digital element. The index was invalid.");
                 return;
             }
-            using (var secure = new CCriticalSection())
+            try
             {
+                CMonitor.Enter(_crit);
                 var element = Elements.Where((e) => e.ID == elementID).First();
                 if (element == null)
                 {
@@ -102,6 +160,10 @@ namespace ElegantXml.Xml
                 element.AttributeValue = value;
                 ReportValueChange(elementID, element.AttributeValue == true ? (ushort)1 : (ushort)0);
                 manager.IsSaveRequired(1);
+            }
+            finally
+            {
+                CMonitor.Exit(_crit);
             }
 
         }

@@ -36,10 +36,12 @@ namespace ElegantXml.Xml
         /// </summary>
         public ReportIsInitializedDelegate ReportIsInitialized { get; set; }
 
+        private object _crit = new Object();
+
         /// <summary>
         /// Used by Simpl+.
         /// </summary>
-        public AnalogProcessor()
+        public AnalogProcessor() : base()
         {
             Elements = new List<AnalogElement>();
         }
@@ -52,11 +54,49 @@ namespace ElegantXml.Xml
         /// <param name="defaultValue">The default value of the element.</param>
         public void AddValue(ushort elementID, string elementPath, ushort defaultValue)
         {
-            using (var secure = new CCriticalSection())
+            try
             {
+                CMonitor.Enter(_crit);
                 var element = new AnalogElement(elementID, elementPath);
                 element.AttributeValue = defaultValue;
                 Elements.Add(element);
+            }
+            finally
+            {
+                CMonitor.Exit(_crit);
+            }
+        }
+
+        /// <summary>
+        /// Adds an item to the processor's list of elements. Attempts to parse the path for a default value.
+        /// </summary>
+        /// <param name="elementID">The 1-based ID of the element, which should match the Simpl+ module parameter's index.</param>
+        /// <param name="elementPath">The path provided by the Simpl+ module parameter.</param>
+        public void AddValueWithDefaultInPath(ushort elementID, string elementPath)
+        {
+            try
+            {
+                CMonitor.Enter(_crit);
+                var path = elementPath;
+                var isElement = false;
+                ushort defaultValue = 0;
+                if(elementPath.Contains(DefaultValueDelimiter))
+                {
+                    path = elementPath.Split(DefaultValueDelimiter)[0];
+                    try
+                    {
+                        defaultValue = ushort.Parse(elementPath.Split(DefaultValueDelimiter)[1]);
+                        isElement = true;
+                    }
+                    catch { Debug.PrintLine("Couldn't parse default analog value from: " + elementPath); }
+                }
+                var element = new AnalogElement(elementID, path, defaultValue);
+                element.IsElement = isElement;
+                Elements.Add(element);
+            }
+            finally
+            {
+                CMonitor.Exit(_crit);
             }
         }
 
@@ -72,8 +112,9 @@ namespace ElegantXml.Xml
                 Debug.PrintLine("Couldn't update value for Analog element. The index was invalid.");
                 return;
             }
-            using (var secure = new CCriticalSection())
+            try
             {
+                CMonitor.Enter(_crit);
                 var element = Elements.Where((e) => e.ID == elementID).First();
                 if (element == null)
                 {
@@ -83,6 +124,10 @@ namespace ElegantXml.Xml
                 element.AttributeValue = value;
                 ReportValueChange(elementID, element.AttributeValue);
                 manager.IsSaveRequired(1);
+            }
+            finally
+            {
+                CMonitor.Exit(_crit);
             }
         }
 
