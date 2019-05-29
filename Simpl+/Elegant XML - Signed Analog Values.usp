@@ -3,17 +3,17 @@
 
 //____Compiler Directives____
 
-#SYMBOL_NAME "Elegant XML - Signed Analog Values v1.1"
+#SYMBOL_NAME "Elegant XML - Signed Analog Values"
 #ENABLE_STACK_CHECKING
 #ENABLE_TRACE
 #DEFAULT_VOLATILE
 #CATEGORY "46" "Elegant Modules"
 #DEFINE_CONSTANT MaxItems 50
 #ANALOG_SERIAL_EXPAND AllWithAny
-#HELP_PDF_FILE "Elegant XML - Signed Analog Values v1.0.pdf"
+#HELP_PDF_FILE "Elegant XML - Signed Analog Values.pdf"
 
 #INCLUDEPATH ""
-#USER_SIMPLSHARP_LIBRARY "ElegantXMLv1.1"
+#USER_SIMPLSHARP_LIBRARY "ElegantXML"
 
 #Help_Begin
 
@@ -52,6 +52,7 @@ callback function ProcessIsInitialized(integer state)
 CHANGE InputValue
 {
     integer i;
+    if(processor.IsProcessorInitialized = 0) { return; }
     i = GetLastModifiedArrayIndex();
     processor.UpdateValue(i, InputValue[i]);
 }

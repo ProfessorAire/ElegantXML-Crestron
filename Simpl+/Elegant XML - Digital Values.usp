@@ -3,16 +3,16 @@
 
 //____Compiler Directives____
 
-#SYMBOL_NAME "Elegant XML - Digital Values v1.1"
+#SYMBOL_NAME "Elegant XML - Digital Values"
 #ENABLE_STACK_CHECKING
 #DEFAULT_VOLATILE
 #CATEGORY "46" "Elegant Modules"
 #DEFINE_CONSTANT MaxItems 50
 #DIGITAL_EXPAND AllWithAny
-#HELP_PDF_FILE "Elegant XML - Digital Values v1.0.pdf"
+#HELP_PDF_FILE "Elegant XML - Digital Values.pdf"
 
 #INCLUDEPATH ""
-#USER_SIMPLSHARP_LIBRARY "ElegantXMLv1.1"
+#USER_SIMPLSHARP_LIBRARY "ElegantXML"
 
 #Help_Begin
 
@@ -23,6 +23,7 @@ DIGITAL_INPUT _SKIP_,_SKIP_,_SKIP_,InputValue[MaxItems];
 DIGITAL_OUTPUT _SKIP_,IsInitialized,_SKIP_,OutputValue[MaxItems];
 INTEGER_PARAMETER ManagerID;
 STRING_PARAMETER _SKIP_,_SKIP_,XmlPath[MaxItems][512];
+
 #BEGIN_PARAMETER_PROPERTIES ManagerID
     propValidUnits = unitDecimal;
     propDefaultUnit = unitDecimal;
@@ -47,6 +48,7 @@ callback function ProcessIsInitialized(integer state)
 PUSH InputValue
 {
     integer i;
+    if(processor.IsProcessorInitialized = 0) { return; }
     i = GetLastModifiedArrayIndex();
     processor.ToggleValue(i);
 }
@@ -61,6 +63,7 @@ FUNCTION Main() {
     }
     RegisterDelegate(processor, ReportValueChange, ProcessValueChange);
     RegisterDelegate(processor, ReportIsInitialized, ProcessIsInitialized);
+    
     for(i = 1 to MaxItems)
     {
         if(IsSignalDefined(OutputValue[i]) && XmlPath[i] <> "")

@@ -3,16 +3,16 @@
 
 //____Compiler Directives____
 
-#SYMBOL_NAME "Elegant XML - Simple Serial Manager v1.2"
+#SYMBOL_NAME "Elegant XML - Simple Serial Manager"
 #ENABLE_STACK_CHECKING
 #ENABLE_TRACE
 #DEFAULT_VOLATILE
 #ANALOG_SERIAL_EXPAND AllWithAny
 #CATEGORY "46" "Elegant Modules"
-//#HELP_PDF_FILE "Elegant XML - Manager v1.1.pdf"
+#HELP_PDF_FILE "Elegant XML - Simple Serial Manager.pdf"
 
 #INCLUDEPATH ""
-#USER_SIMPLSHARP_LIBRARY "ElegantXMLv1.2"
+#USER_SIMPLSHARP_LIBRARY "ElegantXML"
 
 #DEFINE_CONSTANT MaxItems 100
 #DEFINE_CONSTANT MaxLength 1500
@@ -25,11 +25,11 @@
 #Help_End
 
 //____Inputs/Outputs
-DIGITAL_INPUT _SKIP_,_SKIP_,_SKIP_,LoadFile, SaveFile,_SKIP_,EnableDebug;
+DIGITAL_INPUT _SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,LoadFile, SaveFile,_SKIP_,EnableDebug;
 DIGITAL_INPUT _SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_;
-STRING_INPUT InputValue[MaxCount][MaxLength];
+STRING_INPUT InputValue[MaxItems][MaxLength];
 
-DIGITAL_OUTPUT _SKIP_,_SKIP_,_SKIP_,IsLoading, LoadSuccessPulse, LoadFailurePulse,_SKIP_, IsSaveNeeded, IsSaving, SaveSuccessPulse, SaveFailurePulse, _SKIP_;
+DIGITAL_OUTPUT _SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,IsLoading, LoadSuccessPulse, LoadFailurePulse,_SKIP_, IsSaveNeeded, IsSaving, SaveSuccessPulse, SaveFailurePulse, _SKIP_;
 ANALOG_OUTPUT Progress;
 STRING_OUTPUT _SKIP_,ErrorMessage,_SKIP_;
 STRING_OUTPUT OutputValue[MaxItems];
@@ -38,9 +38,9 @@ STRING_PARAMETER FileName[100], RootElement[20];
 INTEGER_PARAMETER ManagerID;
 INTEGER_PARAMETER _SKIP_;
 STRING_PARAMETER PathDelimiter[1];
-STRING_PARAMETER ValueDelimiter[1];
+STRING_PARAMETER DefaultValueDelimiter[1];
 INTEGER_PARAMETER _SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_;
-STRING_PARAMETER XmlPath[MaxItems][MaxPath];
+STRING_PARAMETER _SKIP_,_SKIP_,_SKIP_,XmlPath[MaxItems][MaxPath];
 #BEGIN_PARAMETER_PROPERTIES ManagerID
     propValidUnits = unitDecimal;
     propDefaultUnit = unitDecimal;
@@ -54,15 +54,13 @@ STRING_PARAMETER XmlPath[MaxItems][MaxPath];
 #END_PARAMETER_PROPERTIES
 #BEGIN_PARAMETER_PROPERTIES DefaultValueDelimiter
 	propValidUnits = unitString;
-	propDefaultUnit = unitSring;
+	propDefaultUnit = unitString;
 	propDefaultValue = "|";
-	propList = {"|", "|"}, {"~", "~"}, {"^", "^"}, {"`", "`"};
 #END_PARAMETER_PROPERTIES
 #BEGIN_PARAMETER_PROPERTIES PathDelimiter
 	propValidUnits = unitString;
-	propDefaultUnit = unitSring;
+	propDefaultUnit = unitString;
 	propDefaultValue = ".";
-	propList = {".", "."}, {"\", "\"};
 #END_PARAMETER_PROPERTIES
 
 
@@ -170,7 +168,7 @@ CHANGE InputValue
 //____Start-Up Code____
 FUNCTION Main() {
 	integer i;
-    xmlManager.Initialize(ManagerID, FileName, RootElement);
+    xmlManager.InitializeWithDelimiter(ManagerID, FileName, RootElement, PathDelimiter);
     RegisterDelegate(xmlManager, IsLoading, ProcessIsLoading);
     RegisterDelegate(xmlManager, IsSaving, ProcessIsSaving);
     RegisterDelegate(xmlManager, ReportProgress, ProcessProgress);
@@ -184,14 +182,14 @@ FUNCTION Main() {
     {
     	Delay(1000);
     }
-    processor.DefaultValueDelimiter = 
+	processor.SetDefaultValueDelimiter(DefaultValueDelimiter);
     RegisterDelegate(processor, ReportValueChange, ProcessValueChange);
     RegisterDelegate(processor, ReportIsInitialized, ProcessIsInitialized);
     for(i = 1 to MaxItems)
     {
     	if(IsSignalDefined(OutputValue[i]) && XmlPath[i] <> "")
     	{
-    		processor.AddValue(i, XmlPath[i]);
+    		processor.AddValueWithDefaultInPath(i, XmlPath[i]);
     	}
     }
 	processor.Initialize(ManagerID);
