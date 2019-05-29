@@ -153,6 +153,7 @@ namespace ElegantXml.Xml
         {
             if (delimiter != "")
             {
+                Debug.PrintLine("Initializing manager " + id + " with the PathDelimiter: '" + delimiter[0] + "'");
                 PathDelimiter = delimiter[0];
             }
             Initialize(id, fileName, rootElement);
@@ -186,7 +187,6 @@ namespace ElegantXml.Xml
             }
 
             ID = id;
-
             Manager.AddManager(this);
             Debug.PrintLine("Initialized XML Manager: " + id + " with path: " + FilePath);
         }
@@ -492,6 +492,11 @@ namespace ElegantXml.Xml
             var attribute = "";
             var value = "";
             outValue = "";
+
+            var isElement = false;
+            if (parts.Last().Contains("=")) { isElement = true; }
+            if (parts.Last() == "" || parts.Last() == string.Empty) { isElement = true; }
+
             try
             {
                 for (var i = 0; i < parts.Length - 1; i++)
@@ -527,27 +532,41 @@ namespace ElegantXml.Xml
                 return false;
             }
 
+            if (element == null)
+            {
+                Debug.PrintLine("Couldn't find value for the path: " + path);
+                return false;
+            }
+
             try
             {
                 Debug.PrintLine("Finding a value. Element " + element.Name + " has " + (element.HasAttributes ? element.Attributes().Count() : 0) + " attributes.");
                 Debug.PrintLine("Finding a value. Element " + element.Name + " has " + (element.HasElements ? element.Elements().Count() : 0) + " elements.");
-                Debug.PrintLine("Looking for part: " + parts[parts.Length - 1]);
-                if (element.HasAttributes && element.Attributes().Where((a) => a.Name.ToLower() == parts[parts.Length - 1].ToLower()).Count() > 0)
+
+                if (isElement)
                 {
-                    outValue = element.Attributes().Where((a) => a.Name.ToLower() == parts[parts.Length - 1].ToLower()).FirstOrDefault().Value;
-                    Debug.PrintLine("Set value to: " + outValue);
-                }
-                else if (element.HasElements && element.Elements().Where((e) => e.Name.ToLower() == parts[parts.Length - 1].ToLower()).Count() > 0)
-                {
-                    outValue = element.Elements().Where((e) => e.Name.ToLower() == parts[parts.Length - 1].ToLower()).FirstOrDefault().Value;
+                    outValue = element.Value;
                     Debug.PrintLine("Set value to: " + outValue);
                 }
                 else
                 {
-                    Debug.PrintLine("Couldn't find a value.");
-                    return false;
+                    Debug.PrintLine("Looking for part: " + parts[parts.Length - 1]);
+                    if (element.HasAttributes && element.Attributes().Where((a) => a.Name.ToLower() == parts[parts.Length - 1].ToLower()).Count() > 0)
+                    {
+                        outValue = element.Attributes().Where((a) => a.Name.ToLower() == parts[parts.Length - 1].ToLower()).FirstOrDefault().Value;
+                        Debug.PrintLine("Set value to: " + outValue);
+                    }
+                    else if (element.HasElements && element.Elements().Where((e) => e.Name.ToLower() == parts[parts.Length - 1].ToLower()).Count() > 0)
+                    {
+                        outValue = element.Elements().Where((e) => e.Name.ToLower() == parts[parts.Length - 1].ToLower()).FirstOrDefault().Value;
+                        Debug.PrintLine("Set value to: " + outValue);
+                    }
+                    else
+                    {
+                        Debug.PrintLine("Couldn't find a value.");
+                        return false;
+                    }
                 }
-
                 return true;
             }
             catch (Exception ex)
@@ -572,13 +591,12 @@ namespace ElegantXml.Xml
                 XmlBuilder builder = null;
                 if (XmlDoc != null)
                 {
-                    builder = new XmlBuilder(RootElement, XmlDoc);
+                    builder = new XmlBuilder(RootElement, XmlDoc, PathDelimiter);
                 }
                 else
                 {
-                    builder = new XmlBuilder(RootElement);
+                    builder = new XmlBuilder(RootElement, PathDelimiter);
                 }
-                builder.PathDelimiter = PathDelimiter;
                 if (DigitalProcessors != null && !builder.WriteDigitals(DigitalProcessors))
                 {
                     SaveFailure("Unable to write all Digital elements.");

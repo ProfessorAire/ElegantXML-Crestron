@@ -13,12 +13,6 @@ namespace ElegantXml.Xml
         /// </summary>
         public List<SerialElement> Elements { get; set; }
 
-        private bool isInitialized = false;
-        /// <summary>
-        /// Returns true when the module has initialized correctly.
-        /// </summary>
-        public bool IsInitialized { get { return isInitialized; } set { isInitialized = value; } }
-
         public delegate void ReportValueChangeDelegate(ushort element, SimplSharpString value);
         /// <summary>
         /// Reports a changed value back to the Simpl+ module.
@@ -30,8 +24,6 @@ namespace ElegantXml.Xml
         /// Reports that the class is initialized back to the Simpl+ module.
         /// </summary>
         public ReportIsInitializedDelegate ReportIsInitialized { get; set; }
-
-        private object _crit = new Object();
 
         /// <summary>
         /// Used by Simpl+.
@@ -52,14 +44,13 @@ namespace ElegantXml.Xml
         {
             try
             {
-                CMonitor.Enter(_crit);
-                var element = new SerialElement(elementID, elementPath);
-                element.AttributeValue = defaultValue;
+                CMonitor.Enter(this);
+                var element = new SerialElement(elementID, elementPath, defaultValue);
                 Elements.Add(element);
             }
             finally
             {
-                CMonitor.Exit(_crit);
+                CMonitor.Exit(this);
             }
         }
 
@@ -72,9 +63,8 @@ namespace ElegantXml.Xml
         {
             try
             {
-                CMonitor.Enter(_crit);
+                CMonitor.Enter(this);
                 var path = elementPath;
-                var isElement = false;
                 string defaultValue = "";
                 if (elementPath.Contains(DefaultValueDelimiter))
                 {
@@ -83,18 +73,16 @@ namespace ElegantXml.Xml
                     try
                     {
                         defaultValue = elementPath.Split(DefaultValueDelimiter)[1];
-                        isElement = true;
                         Debug.PrintLine("Element " + elementID + "'s DefaultValue = " + defaultValue);
                     }
                     catch { Debug.PrintLine("Couldn't parse default serial value from: " + elementPath); }
                 }
                 var element = new SerialElement(elementID, path, defaultValue);
-                element.IsElement = isElement;
                 Elements.Add(element);
             }
             finally
             {
-                CMonitor.Exit(_crit);
+                CMonitor.Exit(this);
             }
         }
 
@@ -113,6 +101,7 @@ namespace ElegantXml.Xml
         /// <param name="value">The new value to use as a string.</param>
         public void UpdateValue(ushort elementID, string value)
         {
+            if (!IsInitialized) { return; }
             if (elementID < 1)
             {
                 Debug.PrintLine("Couldn't update value for String element. The index was invalid.");
@@ -120,7 +109,14 @@ namespace ElegantXml.Xml
             }
             try
             {
-                CMonitor.Enter(_crit);
+                if (Elements == null ||
+                    Elements.Count <= 0 ||
+                    Elements.Where((e) => e.ID == elementID).Count() == 0)
+                {
+                    Debug.PrintLine("No elements present to update Serial value on.");
+                    return;
+                }
+                CMonitor.Enter(this);
                 var element = Elements.Where((e) => e.ID == elementID).First();
                 if (element == null)
                 {
@@ -133,7 +129,7 @@ namespace ElegantXml.Xml
             }
             finally
             {
-                CMonitor.Exit(_crit);
+                CMonitor.Exit(this);
             }
         }
 

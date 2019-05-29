@@ -14,11 +14,6 @@ namespace ElegantXml.Xml
         public string AttributePath { get; set; }
 
         /// <summary>
-        /// If true, the value belongs to the element's internal text, not an attribute.
-        /// </summary>
-        public bool IsElement { get; set; }
-
-        /// <summary>
         /// The element's attribute value.
         /// </summary>
         public short AttributeValue { get; set; }

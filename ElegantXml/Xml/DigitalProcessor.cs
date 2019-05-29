@@ -13,12 +13,6 @@ namespace ElegantXml.Xml
         /// </summary>
         public List<DigitalElement> Elements { get; set; }
 
-        private bool isInitialized = false;
-        /// <summary>
-        /// Returns true when the module has initialized correctly.
-        /// </summary>
-        public bool IsInitialized { get { return isInitialized; } set { isInitialized = value; } }
-
         public delegate void ReportValueChangeDelegate(ushort element, ushort value);
         /// <summary>
         /// Reports a changed value back to the Simpl+ module.
@@ -30,8 +24,6 @@ namespace ElegantXml.Xml
         /// Reports that the class is initialized back to the Simpl+ module.
         /// </summary>
         public ReportIsInitializedDelegate ReportIsInitialized { get; set; }
-
-        private object _crit = new Object();
 
         /// <summary>
         /// Used by Simpl+.
@@ -51,14 +43,14 @@ namespace ElegantXml.Xml
         {
             try
             {
-                CMonitor.Enter(_crit);
+                CMonitor.Enter(this);
                 var element = new DigitalElement(elementID, elementPath);
-                element.AttributeValue = defaultValue > 0 ? true : false;
+                element.DefaultValue = defaultValue > 0 ? true : false;
                 Elements.Add(element);
             }
             finally
             {
-                CMonitor.Exit(_crit);
+                CMonitor.Exit(this);
             }
         }
 
@@ -71,9 +63,8 @@ namespace ElegantXml.Xml
         {
             try
             {
-                CMonitor.Enter(_crit);
+                CMonitor.Enter(this);
                 var path = elementPath;
-                var isElement = false;
                 bool defaultValue = false;
                 if (elementPath.Contains(DefaultValueDelimiter))
                 {
@@ -93,17 +84,15 @@ namespace ElegantXml.Xml
                         {
                             defaultValue = bool.Parse(elementPath.Split(DefaultValueDelimiter)[1]);
                         }
-                        isElement = true;
                     }
                     catch { Debug.PrintLine("Couldn't parse default digital value from: " + elementPath); }
                 }
                 var element = new DigitalElement(elementID, path, defaultValue);
-                element.IsElement = isElement;
                 Elements.Add(element);
             }
             finally
             {
-                CMonitor.Exit(_crit);
+                CMonitor.Exit(this);
             }
         }
 
@@ -113,6 +102,7 @@ namespace ElegantXml.Xml
         /// <param name="elementID">The 1-based ID of the element, which should match the Simpl+ module parameter's index.</param>
         public void ToggleValue(ushort elementID)
         {
+            if (!IsInitialized) { return; }
             if (elementID < 1)
             {
                 Debug.PrintLine("Couldn't toggle value for element. The index was invalid.");
@@ -120,18 +110,27 @@ namespace ElegantXml.Xml
             }
             try
             {
-                CMonitor.Enter(_crit);
-                var element = Elements.Where((e) => e.ID == elementID).First();
-                if (element != null)
+                if (Elements == null ||
+                    Elements.Count <= 0 ||
+                    Elements.Where((e) => e.ID == elementID).Count() == 0)
                 {
-                    element.AttributeValue = !element.AttributeValue;
+                    Debug.PrintLine("No elements present to update Digital value on.");
+                    return;
                 }
+                CMonitor.Enter(this);
+                var element = Elements.Where((e) => e.ID == elementID).First();
+                if (element == null)
+                {
+                    Debug.PrintLine("Couldn't find element to update Digital value on.");
+                    return;
+                }
+                element.AttributeValue = !element.AttributeValue;
                 ReportValueChange(elementID, element.AttributeValue == true ? (ushort)1 : (ushort)0);
                 manager.IsSaveRequired(1);
             }
             finally
             {
-                CMonitor.Exit(_crit);
+                CMonitor.Exit(this);
             }
 
         }
@@ -143,6 +142,7 @@ namespace ElegantXml.Xml
         /// <param name="value">The new value to use as a boolean.</param>
         public void UpdateValue(ushort elementID, bool value)
         {
+            if (!IsInitialized) { return; }
             if (elementID < 1)
             {
                 Debug.PrintLine("Couldn't update value for Digital element. The index was invalid.");
@@ -150,7 +150,14 @@ namespace ElegantXml.Xml
             }
             try
             {
-                CMonitor.Enter(_crit);
+                if (Elements == null ||
+                    Elements.Count <= 0 ||
+                    Elements.Where((e) => e.ID == elementID).Count() == 0)
+                {
+                    Debug.PrintLine("No elements present to update Digital value on.");
+                    return;
+                }
+                CMonitor.Enter(this);
                 var element = Elements.Where((e) => e.ID == elementID).First();
                 if (element == null)
                 {
@@ -163,7 +170,7 @@ namespace ElegantXml.Xml
             }
             finally
             {
-                CMonitor.Exit(_crit);
+                CMonitor.Exit(this);
             }
 
         }

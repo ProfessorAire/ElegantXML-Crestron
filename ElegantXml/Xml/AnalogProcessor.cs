@@ -18,12 +18,6 @@ namespace ElegantXml.Xml
         /// </summary>
         public List<AnalogElement> Elements { get; set; }
 
-        private bool isInitialized = false;
-        /// <summary>
-        /// Returns true when the module has initialized correctly.
-        /// </summary>
-        public bool IsInitialized { get { return isInitialized; } set { isInitialized = value; } }
-
         public delegate void ReportValueChangeDelegate(ushort element, ushort value);
         /// <summary>
         /// Reports a changed value back to the Simpl+ module.
@@ -36,12 +30,12 @@ namespace ElegantXml.Xml
         /// </summary>
         public ReportIsInitializedDelegate ReportIsInitialized { get; set; }
 
-        private object _crit = new Object();
 
         /// <summary>
         /// Used by Simpl+.
         /// </summary>
-        public AnalogProcessor() : base()
+        public AnalogProcessor()
+            : base()
         {
             Elements = new List<AnalogElement>();
         }
@@ -56,14 +50,13 @@ namespace ElegantXml.Xml
         {
             try
             {
-                CMonitor.Enter(_crit);
-                var element = new AnalogElement(elementID, elementPath);
-                element.AttributeValue = defaultValue;
+                CMonitor.Enter(this);
+                var element = new AnalogElement(elementID, elementPath, defaultValue);
                 Elements.Add(element);
             }
             finally
             {
-                CMonitor.Exit(_crit);
+                CMonitor.Exit(this);
             }
         }
 
@@ -76,27 +69,24 @@ namespace ElegantXml.Xml
         {
             try
             {
-                CMonitor.Enter(_crit);
+                CMonitor.Enter(this);
                 var path = elementPath;
-                var isElement = false;
                 ushort defaultValue = 0;
-                if(elementPath.Contains(DefaultValueDelimiter))
+                if (elementPath.Contains(DefaultValueDelimiter))
                 {
                     path = elementPath.Split(DefaultValueDelimiter)[0];
                     try
                     {
                         defaultValue = ushort.Parse(elementPath.Split(DefaultValueDelimiter)[1]);
-                        isElement = true;
                     }
                     catch { Debug.PrintLine("Couldn't parse default analog value from: " + elementPath); }
                 }
                 var element = new AnalogElement(elementID, path, defaultValue);
-                element.IsElement = isElement;
                 Elements.Add(element);
             }
             finally
             {
-                CMonitor.Exit(_crit);
+                CMonitor.Exit(this);
             }
         }
 
@@ -107,6 +97,7 @@ namespace ElegantXml.Xml
         /// <param name="value">The new value to use as a ushort.</param>
         public void UpdateValue(ushort elementID, ushort value)
         {
+            if (!IsInitialized) { return; }
             if (elementID < 1)
             {
                 Debug.PrintLine("Couldn't update value for Analog element. The index was invalid.");
@@ -114,7 +105,14 @@ namespace ElegantXml.Xml
             }
             try
             {
-                CMonitor.Enter(_crit);
+                if (Elements == null ||
+                    Elements.Count <= 0 ||
+                    Elements.Where((e) => e.ID == elementID).Count() == 0)
+                {
+                    Debug.PrintLine("No elements present to update Analog value on.");
+                    return;
+                }
+                CMonitor.Enter(this);
                 var element = Elements.Where((e) => e.ID == elementID).First();
                 if (element == null)
                 {
@@ -127,7 +125,7 @@ namespace ElegantXml.Xml
             }
             finally
             {
-                CMonitor.Exit(_crit);
+                CMonitor.Exit(this);
             }
         }
 

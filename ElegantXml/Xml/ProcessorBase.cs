@@ -21,6 +21,14 @@ namespace ElegantXml.Xml
             DefaultValueDelimiter = DelimiterCharacter[0];
         }
 
+        private bool isInitialized = false;
+        /// <summary>
+        /// Returns true when the module has initialized correctly.
+        /// </summary>
+        public bool IsInitialized { get { return isInitialized; } set { isInitialized = value; } }
+
+        public ushort IsProcessorInitialized { get { return IsInitialized ? (ushort)1 : (ushort)0; } }
+
         /// <summary>
         /// The Manager this processor is associated with.
         /// </summary>

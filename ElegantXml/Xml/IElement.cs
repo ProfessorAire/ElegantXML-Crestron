@@ -13,6 +13,5 @@ namespace ElegantXml.Xml
     {
         string GetAttributeValue();
         string AttributePath { get; set; }
-        bool IsElement { get; set; }
     }
 }

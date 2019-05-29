@@ -34,11 +34,11 @@ namespace ElegantXml.Xml
         /// <param name="rootElementName">This is the name of the root element, which contains the whole XML structure.
         /// This is not the ?xml element that denotes an XML document, but the first element immediately following.
         /// There should only be one root element in an XML document.</param>
-        public XmlBuilder(string rootElementName)
+        public XmlBuilder(string rootElementName, char pathDelimiter)
         {
             document = new XDocument();
             Document.Add(new XElement(rootElementName));
-            PathDelimiter = '.';
+            PathDelimiter = pathDelimiter;
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace ElegantXml.Xml
         /// This is not the ?xml element that denotes an XML document, but the first element immediately following.
         /// There should only be one root element in an XML document.</param>
         /// <param name="xDocument">The XDocument to write into.</param>
-        public XmlBuilder(string rootElementName, XDocument xDocument)
+        public XmlBuilder(string rootElementName, XDocument xDocument, char pathDelimiter)
         {
             if (xDocument == null)
             {
@@ -64,8 +64,8 @@ namespace ElegantXml.Xml
             else
             {
                 document = xDocument;
-                PathDelimiter = '.';
             }
+            PathDelimiter = pathDelimiter;
         }
 
         /// <summary>
@@ -247,6 +247,7 @@ namespace ElegantXml.Xml
         /// <returns>True if successful, false if it fails.</returns>
         public bool WriteElement(IElement item)
         {
+            var isElement = false;
             if (item == null)
             {
                 Debug.PrintLine("Item is null! Cannot process null reference.");
@@ -254,9 +255,11 @@ namespace ElegantXml.Xml
             }
             Debug.PrintLine("Writing path: " + item.AttributePath + " with the value: " + item.GetAttributeValue());
             var name = "";
+            
             var parts = item.AttributePath.Split(PathDelimiter);
-            Debug.PrintLine("PathDelimiter: " + PathDelimiter);
-            Debug.PrintLine("Path quantity: " + parts.Length);
+
+            Debug.PrintLine("Using delimiter '" + PathDelimiter + "' there are " + parts.Length + " items in the parts array.");
+
             var attribute = "";
             var value = "";
             string[] slice = null;
@@ -275,7 +278,10 @@ namespace ElegantXml.Xml
 
             var current = Document.Root;
 
-            for (var i = 0; i < (item.IsElement ? parts.Length : parts.Length - 1); i++)
+            if (parts.Last().Contains("=")) { isElement = true; }
+
+            for (var i = 0; i < (isElement ? parts.Length : parts.Length - 1); i++)
+            //for (var i = 0; i < parts.Length - 1; i++)
             {
                 element = null;
                 name = "";
@@ -329,11 +335,13 @@ namespace ElegantXml.Xml
                         if (current.Elements().Where((e) => e.Name.ToLower() == name.ToLower()).Count() > 0)
                         {
                             current = current.Elements().Where((e) => e.Name.ToLower() == name.ToLower()).First();
+                            Debug.PrintLine("Found existing Simple Element.");
                             continue;
                         }
 
                         if (element == null)
                         {
+                            Debug.PrintLine("Creating new element with the name: " + name);
                             element = new XElement(name);
                         }
                         Debug.PrintLine("Adding element: " + element.Name);
@@ -348,9 +356,12 @@ namespace ElegantXml.Xml
                     }
                 }
             }
+
+            if (parts.Last() == "" || parts.Last() == string.Empty) { isElement = true; }
+
             try
             {
-                if (item.IsElement)
+                if (isElement)
                 {
                     current.Value = item.GetAttributeValue();
                     Debug.PrintLine("Item is an element " + current.Name + " with the value " + current.Value + ".");
