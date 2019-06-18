@@ -71,6 +71,7 @@ SerialProcessor processor;
   
   
 //____Global Variables____
+integer init;
 
 //____Functions____
 callback function ProcessValueChange(integer id, string value)
@@ -80,7 +81,7 @@ callback function ProcessValueChange(integer id, string value)
 
 callback function ProcessIsInitialized(integer state)
 {
-	if(state = 0 || IsLoading = 1 || IsSaving = 1)
+	if(state = 0 || init = 0 || IsLoading = 1 || IsSaving = 1)
     {
          return;
     }
@@ -128,7 +129,7 @@ callback function ProcessIsSaveRequired(integer state)
 
 PUSH LoadFile
 {
-    if(IsLoading = 1 || IsSaving = 1)
+    if(IsLoading = 1 || IsSaving = 1 || init = 0)
     {
          return;
     }
@@ -138,7 +139,7 @@ PUSH LoadFile
 
 PUSH SaveFile
 {
-    if(IsLoading = 1 || IsSaving = 1)
+    if(IsLoading = 1 || IsSaving = 1 || init = 0)
     {
          return;
     }
@@ -168,7 +169,7 @@ CHANGE InputValue
 //____Start-Up Code____
 FUNCTION Main() {
 	integer i;
-    xmlManager.InitializeWithDelimiter(ManagerID, FileName, RootElement, PathDelimiter);
+    xmlManager.InitializeWithDelimiters(ManagerID, FileName, RootElement, PathDelimiter, DefaultValueDelimiter);
     RegisterDelegate(xmlManager, IsLoading, ProcessIsLoading);
     RegisterDelegate(xmlManager, IsSaving, ProcessIsSaving);
     RegisterDelegate(xmlManager, ReportProgress, ProcessProgress);
@@ -180,17 +181,26 @@ FUNCTION Main() {
     WaitForInitializationComplete();
     while(processor.IsManagerReady(ManagerID) = 0)
     {
-    	Delay(1000);
+    	Delay(100);
     }
-	processor.SetDefaultValueDelimiter(DefaultValueDelimiter);
     RegisterDelegate(processor, ReportValueChange, ProcessValueChange);
     RegisterDelegate(processor, ReportIsInitialized, ProcessIsInitialized);
     for(i = 1 to MaxItems)
     {
     	if(IsSignalDefined(OutputValue[i]) && XmlPath[i] <> "")
     	{
-    		processor.AddValueWithDefaultInPath(i, XmlPath[i]);
+    		processor.AddValue(i, XmlPath[i], InputValue[i]);
     	}
     }
-	processor.Initialize(ManagerID);
+              
+    // This delay is to allow for the possibility of other modules registering with this one,
+    // to provide additional Anlog/Digital functionality.
+    Delay(300);
+    
+    init = 1;
+    
+    processor.Initialize(ManagerID);
+
+
+
 }

@@ -106,6 +106,16 @@ namespace ElegantXml.Xml
         public char PathDelimiter { get; set; }
 
         /// <summary>
+        /// Sets or retrieves the delimiter used to separate the path from the default value in the Simpl+ parameter.
+        /// </summary>
+        public char DefaultValueDelimiter { get; set; }
+
+        public void SetDefaultValueDelimiter(string DelimiterCharacter)
+        {
+            DefaultValueDelimiter = DelimiterCharacter[0];
+        }
+
+        /// <summary>
         /// Passes progress to the ReportProgress delegate, forcing the Crestron environment to allow other apps to process.
         /// </summary>
         /// <param name="progress"></param>
@@ -149,13 +159,13 @@ namespace ElegantXml.Xml
         /// <param name="fileName">The file name of the config file, without a path.</param>
         /// <param name="rootElement">The name of the root element in the XML file.</param>
         /// <param name="delimiter">The default path delimiter to use when parsing the file.</param>
-        public void InitializeWithDelimiter(ushort id, string fileName, string rootElement, string delimiter)
+        public void InitializeWithDelimiters(ushort id, string fileName, string rootElement, string pathDelimiter, string valueDelimiter)
         {
-            if (delimiter != "")
+            if (pathDelimiter != "")
             {
-                Debug.PrintLine("Initializing manager " + id + " with the PathDelimiter: '" + delimiter[0] + "'");
-                PathDelimiter = delimiter[0];
+                PathDelimiter = pathDelimiter[0];
             }
+            SetDefaultValueDelimiter(valueDelimiter);
             Initialize(id, fileName, rootElement);
         }
 

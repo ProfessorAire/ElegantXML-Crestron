@@ -34,7 +34,7 @@ namespace ElegantXml.Xml
         }
 
         /// <summary>
-        /// Adds an item to the processor's list of elements.
+        /// Adds an item to the processor's list of elements. Attempts to parse the path for a default value.
         /// </summary>
         /// <param name="elementID">The 1-based ID of the element, which should match the Simpl+ module parameter's index.</param>
         /// <param name="elementPath">The path provided by the Simpl+ module parameter.</param>
@@ -44,28 +44,8 @@ namespace ElegantXml.Xml
             try
             {
                 CMonitor.Enter(this);
-                var element = new DigitalElement(elementID, elementPath);
-                element.DefaultValue = defaultValue > 0 ? true : false;
-                Elements.Add(element);
-            }
-            finally
-            {
-                CMonitor.Exit(this);
-            }
-        }
-
-        /// <summary>
-        /// Adds an item to the processor's list of elements. Attempts to parse the path for a default value.
-        /// </summary>
-        /// <param name="elementID">The 1-based ID of the element, which should match the Simpl+ module parameter's index.</param>
-        /// <param name="elementPath">The path provided by the Simpl+ module parameter.</param>
-        public void AddValueWithDefaultInPath(ushort elementID, string elementPath)
-        {
-            try
-            {
-                CMonitor.Enter(this);
                 var path = elementPath;
-                bool defaultValue = false;
+                bool defVal = false;
                 if (elementPath.Contains(DefaultValueDelimiter))
                 {
                     path = elementPath.Split(DefaultValueDelimiter)[0];
@@ -74,20 +54,28 @@ namespace ElegantXml.Xml
                         var val = elementPath.Split(DefaultValueDelimiter)[1];
                         if (val.ToLower() == "true" || val.ToLower() == "false")
                         {
-                            defaultValue = val.ToLower() == "true" ? true : false;
+                            defVal = val.ToLower() == "true" ? true : false;
                         }
                         else if (val == "0" || val == "1")
                         {
-                            defaultValue = val == "1" ? true : false;
+                            defVal = val == "1" ? true : false;
                         }
                         else
                         {
-                            defaultValue = bool.Parse(elementPath.Split(DefaultValueDelimiter)[1]);
+                            defVal = bool.Parse(elementPath.Split(DefaultValueDelimiter)[1]);
                         }
                     }
-                    catch { Debug.PrintLine("Couldn't parse default digital value from: " + elementPath); }
+                    catch
+                    {
+                        Debug.PrintLine("Couldn't parse default digital value from: " + elementPath);
+                        defVal = defaultValue > 0 ? true : false;
+                    }
                 }
-                var element = new DigitalElement(elementID, path, defaultValue);
+                else
+                {
+                    defVal = defaultValue > 0 ? true : false;
+                }
+                var element = new DigitalElement(elementID, path, defVal);
                 Elements.Add(element);
             }
             finally

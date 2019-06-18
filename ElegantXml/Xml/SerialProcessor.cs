@@ -35,7 +35,7 @@ namespace ElegantXml.Xml
         }
 
         /// <summary>
-        /// Adds an item to the processor's list of elements.
+        /// Adds an item to the processor's list of elements. Attempts to parse the path for a default value.
         /// </summary>
         /// <param name="elementID">The 1-based ID of the element, which should match the Simpl+ module parameter's index.</param>
         /// <param name="elementPath">The path provided by the Simpl+ module parameter.</param>
@@ -45,39 +45,28 @@ namespace ElegantXml.Xml
             try
             {
                 CMonitor.Enter(this);
-                var element = new SerialElement(elementID, elementPath, defaultValue);
-                Elements.Add(element);
-            }
-            finally
-            {
-                CMonitor.Exit(this);
-            }
-        }
-
-        /// <summary>
-        /// Adds an item to the processor's list of elements. Attempts to parse the path for a default value.
-        /// </summary>
-        /// <param name="elementID">The 1-based ID of the element, which should match the Simpl+ module parameter's index.</param>
-        /// <param name="elementPath">The path provided by the Simpl+ module parameter.</param>
-        public void AddValueWithDefaultInPath(ushort elementID, string elementPath)
-        {
-            try
-            {
-                CMonitor.Enter(this);
                 var path = elementPath;
-                string defaultValue = "";
+                string defVal = "";
                 if (elementPath.Contains(DefaultValueDelimiter))
                 {
                     path = elementPath.Split(DefaultValueDelimiter)[0];
                     Debug.PrintLine("Element " + elementID + "'s Path = " + path);
                     try
                     {
-                        defaultValue = elementPath.Split(DefaultValueDelimiter)[1];
-                        Debug.PrintLine("Element " + elementID + "'s DefaultValue = " + defaultValue);
+                        defVal = elementPath.Split(DefaultValueDelimiter)[1];
+                        Debug.PrintLine("Element " + elementID + "'s DefaultValue = " + defVal);
                     }
-                    catch { Debug.PrintLine("Couldn't parse default serial value from: " + elementPath); }
+                    catch
+                    {
+                        Debug.PrintLine("Couldn't parse default serial value from: " + elementPath);
+                        defVal = defaultValue;
+                    }
                 }
-                var element = new SerialElement(elementID, path, defaultValue);
+                else
+                {
+                    defVal = defaultValue;
+                }
+                var element = new SerialElement(elementID, path, defVal);
                 Elements.Add(element);
             }
             finally

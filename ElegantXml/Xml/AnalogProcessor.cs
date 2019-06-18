@@ -40,8 +40,8 @@ namespace ElegantXml.Xml
             Elements = new List<AnalogElement>();
         }
 
-        /// <summary>
-        /// Adds an item to the processor's list of elements.
+         /// <summary>
+        /// Adds an item to the processor's list of elements. Attempts to parse the path for a default value.
         /// </summary>
         /// <param name="elementID">The 1-based ID of the element, which should match the Simpl+ module parameter's index.</param>
         /// <param name="elementPath">The path provided by the Simpl+ module parameter.</param>
@@ -51,37 +51,26 @@ namespace ElegantXml.Xml
             try
             {
                 CMonitor.Enter(this);
-                var element = new AnalogElement(elementID, elementPath, defaultValue);
-                Elements.Add(element);
-            }
-            finally
-            {
-                CMonitor.Exit(this);
-            }
-        }
-
-        /// <summary>
-        /// Adds an item to the processor's list of elements. Attempts to parse the path for a default value.
-        /// </summary>
-        /// <param name="elementID">The 1-based ID of the element, which should match the Simpl+ module parameter's index.</param>
-        /// <param name="elementPath">The path provided by the Simpl+ module parameter.</param>
-        public void AddValueWithDefaultInPath(ushort elementID, string elementPath)
-        {
-            try
-            {
-                CMonitor.Enter(this);
                 var path = elementPath;
-                ushort defaultValue = 0;
+                ushort defVal = 0;
                 if (elementPath.Contains(DefaultValueDelimiter))
                 {
                     path = elementPath.Split(DefaultValueDelimiter)[0];
                     try
                     {
-                        defaultValue = ushort.Parse(elementPath.Split(DefaultValueDelimiter)[1]);
+                        defVal = ushort.Parse(elementPath.Split(DefaultValueDelimiter)[1]);
                     }
-                    catch { Debug.PrintLine("Couldn't parse default analog value from: " + elementPath); }
+                    catch
+                    {
+                        Debug.PrintLine("Couldn't parse default analog value from: " + elementPath);
+                        defVal = defaultValue;
+                    }
                 }
-                var element = new AnalogElement(elementID, path, defaultValue);
+                else
+                {
+                    defVal = defaultValue;
+                }
+                var element = new AnalogElement(elementID, path, defVal);
                 Elements.Add(element);
             }
             finally

@@ -11,14 +11,20 @@ namespace ElegantXml.Xml
     /// </summary>
     public class ProcessorBase
     {
-        /// <summary>
-        /// Sets or retrieves the delimiter used to separate the path from the default value in the Simpl+ parameter.
-        /// </summary>
-        public char DefaultValueDelimiter { get; set; }
 
-        public void SetDefaultValueDelimiter(string DelimiterCharacter)
+        internal char DefaultValueDelimiter
         {
-            DefaultValueDelimiter = DelimiterCharacter[0];
+            get
+            {
+                if (manager != null)
+                {
+                    return manager.DefaultValueDelimiter;
+                }
+                else
+                {
+                    return '|';
+                }
+            }
         }
 
         private bool isInitialized = false;
@@ -49,11 +55,5 @@ namespace ElegantXml.Xml
             }
             return 0;
         }
-
-        internal ProcessorBase()
-        {
-            DefaultValueDelimiter = '|';
-        }
-
     }
 }
