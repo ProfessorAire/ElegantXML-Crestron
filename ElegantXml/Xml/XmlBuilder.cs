@@ -69,6 +69,32 @@ namespace ElegantXml.Xml
         }
 
         /// <summary>
+        /// Creates a new builder.
+        /// </summary>
+        /// <param name="rootElementName">This is the name of the root element, which contains the whole XML structure.
+        /// This is not the ?xml element that denotes an XML document, but the first element immediately following.
+        /// There should only be one root element in an XML document.</param>
+        /// <param name="xDocument">The XDocument to write into.</param>
+        public XmlBuilder(string rootElementName, XDocument xDocument)
+        {
+            if (xDocument == null)
+            {
+                throw new NullReferenceException("Empty XDocument provided to XmlBuilder. Unable to create the object.");
+            }
+
+            if (xDocument.Root.Name != rootElementName)
+            {
+                Debug.PrintLine("Unable to verify XDocument's root element. This document will not be used and a new document will be created.");
+                document = new XDocument();
+                Document.Add(new XElement(rootElementName));
+            }
+            else
+            {
+                document = xDocument;
+            }
+        }
+
+        /// <summary>
         /// Save the document to the path provided. Requires the document have been built first.
         /// </summary>
         /// <param name="path"></param>
@@ -275,7 +301,6 @@ namespace ElegantXml.Xml
                 Debug.PrintLine("Document.Root is null! Cannot process saving XML Document.");
                 return false;
             }
-
             var current = Document.Root;
 
             if (parts.Last().Contains("=")) { isElement = true; }

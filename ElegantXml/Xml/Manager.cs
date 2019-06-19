@@ -616,26 +616,34 @@ namespace ElegantXml.Xml
                 }
                 if (AnalogProcessors != null && !builder.WriteAnalogs(AnalogProcessors))
                 {
-                    SaveFailure("Unable to write all Analog elements.");
-                    Debug.PrintLine("Unable to write all Analog elements.");
-                    IsSaving(0);
-                    return;
+                    if (!builder.WriteAnalogs(AnalogProcessors))
+                    {
+                        SaveFailure("Unable to write all Analog elements.");
+                        Debug.PrintLine("Unable to write all Analog elements.");
+                        IsSaving(0);
+                        return;
+                    }
                 }
                 if (SignedAnalogProcessors != null && !builder.WriteSignedAnalogs(SignedAnalogProcessors))
                 {
-                    SaveFailure("Unable to write all Signed Analog elements.");
-                    Debug.PrintLine("Unable to write all Signed Analog elements.");
-                    IsSaving(0);
-                    return;
+                    if (!builder.WriteSignedAnalogs(SignedAnalogProcessors))
+                    {
+                        SaveFailure("Unable to write all Signed Analog elements.");
+                        Debug.PrintLine("Unable to write all Signed Analog elements.");
+                        IsSaving(0);
+                        return;
+                    }
                 }
                 if (SerialProcessors != null && !builder.WriteSerials(SerialProcessors))
                 {
-                    SaveFailure("Unable to write all Serial elements.");
-                    Debug.PrintLine("Unable to write all Serial elements.");
-                    IsSaving(0);
-                    return;
+                    if (!builder.WriteSerials(SerialProcessors))
+                    {
+                        SaveFailure("Unable to write all Serial elements.");
+                        Debug.PrintLine("Unable to write all Serial elements.");
+                        IsSaving(0);
+                        return;
+                    }
                 }
-
                 try
                 {
                     if (builder.Save(FilePath))
@@ -644,6 +652,7 @@ namespace ElegantXml.Xml
                         SaveSuccess();
                         IsSaving(0);
                         IsSaveRequired(0);
+                        XmlDoc = builder.Document;
                         return;
                     }
                     else
