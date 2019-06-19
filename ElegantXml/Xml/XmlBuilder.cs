@@ -24,15 +24,48 @@ namespace ElegantXml.Xml
         public XDocument Document { get { return document; } }
 
         /// <summary>
+        /// The delimiter used when splitting paths.
+        /// </summary>
+        public char PathDelimiter { get; set; }
+
+        /// <summary>
         /// Creates a new builder.
         /// </summary>
         /// <param name="rootElementName">This is the name of the root element, which contains the whole XML structure.
         /// This is not the ?xml element that denotes an XML document, but the first element immediately following.
         /// There should only be one root element in an XML document.</param>
-        public XmlBuilder(string rootElementName)
+        public XmlBuilder(string rootElementName, char pathDelimiter)
         {
             document = new XDocument();
             Document.Add(new XElement(rootElementName));
+            PathDelimiter = pathDelimiter;
+        }
+
+        /// <summary>
+        /// Creates a new builder.
+        /// </summary>
+        /// <param name="rootElementName">This is the name of the root element, which contains the whole XML structure.
+        /// This is not the ?xml element that denotes an XML document, but the first element immediately following.
+        /// There should only be one root element in an XML document.</param>
+        /// <param name="xDocument">The XDocument to write into.</param>
+        public XmlBuilder(string rootElementName, XDocument xDocument, char pathDelimiter)
+        {
+            if (xDocument == null)
+            {
+                throw new NullReferenceException("Empty XDocument provided to XmlBuilder. Unable to create the object.");
+            }
+
+            if (xDocument.Root.Name != rootElementName)
+            {
+                Debug.PrintLine("Unable to verify XDocument's root element. This document will not be used and a new document will be created.");
+                document = new XDocument();
+                Document.Add(new XElement(rootElementName));
+            }
+            else
+            {
+                document = xDocument;
+            }
+            PathDelimiter = pathDelimiter;
         }
 
         /// <summary>
@@ -240,17 +273,24 @@ namespace ElegantXml.Xml
         /// <returns>True if successful, false if it fails.</returns>
         public bool WriteElement(IElement item)
         {
+            var isElement = false;
             if (item == null)
             {
                 Debug.PrintLine("Item is null! Cannot process null reference.");
                 return false;
             }
+            Debug.PrintLine("Writing path: " + item.AttributePath + " with the value: " + item.GetAttributeValue());
             var name = "";
-            var parts = item.AttributePath.Split('.');
+            
+            var parts = item.AttributePath.Split(PathDelimiter);
+
+            Debug.PrintLine("Using delimiter '" + PathDelimiter + "' there are " + parts.Length + " items in the parts array.");
+
             var attribute = "";
             var value = "";
             string[] slice = null;
             XElement element = null;
+
             if (Document == null)
             {
                 Debug.PrintLine("Document is null! Cannot process saving XML Document.");
@@ -263,13 +303,10 @@ namespace ElegantXml.Xml
             }
             var current = Document.Root;
 
-            if (parts == null)
-            {
-                Debug.PrintLine("Parts is null! Cannot process saving XML Document.");
-                return false;
-            }
+            if (parts.Last().Contains("=")) { isElement = true; }
 
-            for (var i = 0; i < parts.Length - 1; i++)
+            for (var i = 0; i < (isElement ? parts.Length : parts.Length - 1); i++)
+            //for (var i = 0; i < parts.Length - 1; i++)
             {
                 element = null;
                 name = "";
@@ -277,6 +314,7 @@ namespace ElegantXml.Xml
                 value = "";
                 if (parts[i].Contains(" "))
                 {
+                    Debug.PrintLine("Complex element.");
                     //This is a complex element. It has an inline attribute to identify the element. (eg: Element id="Element1")
                     try
                     {
@@ -300,7 +338,7 @@ namespace ElegantXml.Xml
                             element = new XElement(name);
                             element.Add(new XAttribute(attribute, value));
                         }
-
+                        Debug.PrintLine("Adding element: " + element.Name);
                         current.Add(element);
                         current = element;
                     }
@@ -313,6 +351,7 @@ namespace ElegantXml.Xml
                 }
                 else
                 {
+                    Debug.PrintLine("Simple Element.");
                     //This should be a simple element. It has no line attribute to identify the element. (eg: Element)
                     try
                     {
@@ -321,14 +360,16 @@ namespace ElegantXml.Xml
                         if (current.Elements().Where((e) => e.Name.ToLower() == name.ToLower()).Count() > 0)
                         {
                             current = current.Elements().Where((e) => e.Name.ToLower() == name.ToLower()).First();
+                            Debug.PrintLine("Found existing Simple Element.");
                             continue;
                         }
 
                         if (element == null)
                         {
+                            Debug.PrintLine("Creating new element with the name: " + name);
                             element = new XElement(name);
                         }
-
+                        Debug.PrintLine("Adding element: " + element.Name);
                         current.Add(element);
                         current = element;
                     }
@@ -340,16 +381,28 @@ namespace ElegantXml.Xml
                     }
                 }
             }
+
+            if (parts.Last() == "" || parts.Last() == string.Empty) { isElement = true; }
+
             try
             {
-                attribute = parts.Last().Replace(" ", "");
-                if (current != null && current.HasAttributes && current.Attributes(attribute).Count() > 0)
+                if (isElement)
                 {
-                    current.Attribute(attribute).Value = item.GetAttributeValue();
+                    current.Value = item.GetAttributeValue();
+                    Debug.PrintLine("Item is an element " + current.Name + " with the value " + current.Value + ".");
                 }
                 else
                 {
-                    current.Add(new XAttribute(attribute, item.GetAttributeValue()));
+                    attribute = parts.Last().Replace(" ", "");
+                    if (current != null && current.HasAttributes && current.Attributes(attribute).Count() > 0)
+                    {
+                        current.Attribute(attribute).Value = item.GetAttributeValue();
+                    }
+                    else
+                    {
+                        current.Add(new XAttribute(attribute, item.GetAttributeValue()));
+                        Debug.PrintLine("Item is an attribute " + attribute + " with the value " + item.GetAttributeValue());
+                    }
                 }
             }
             catch (Exception ex)

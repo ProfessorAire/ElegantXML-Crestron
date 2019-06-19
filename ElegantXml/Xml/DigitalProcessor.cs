@@ -13,12 +13,6 @@ namespace ElegantXml.Xml
         /// </summary>
         public List<DigitalElement> Elements { get; set; }
 
-        private bool isInitialized = false;
-        /// <summary>
-        /// Returns true when the module has initialized correctly.
-        /// </summary>
-        public bool IsInitialized { get { return isInitialized; } set { isInitialized = value; } }
-
         public delegate void ReportValueChangeDelegate(ushort element, ushort value);
         /// <summary>
         /// Reports a changed value back to the Simpl+ module.
@@ -34,24 +28,59 @@ namespace ElegantXml.Xml
         /// <summary>
         /// Used by Simpl+.
         /// </summary>
-        public DigitalProcessor()
+        public DigitalProcessor() : base()
         {
             Elements = new List<DigitalElement>();
         }
 
         /// <summary>
-        /// Adds an item to the processor's list of elements.
+        /// Adds an item to the processor's list of elements. Attempts to parse the path for a default value.
         /// </summary>
         /// <param name="elementID">The 1-based ID of the element, which should match the Simpl+ module parameter's index.</param>
         /// <param name="elementPath">The path provided by the Simpl+ module parameter.</param>
         /// <param name="defaultValue">The default value of the element.</param>
         public void AddValue(ushort elementID, string elementPath, ushort defaultValue)
         {
-            using (var secure = new CCriticalSection())
+            try
             {
-                var element = new DigitalElement(elementID, elementPath);
-                element.AttributeValue = defaultValue > 0 ? true : false;
+                CMonitor.Enter(this);
+                var path = elementPath;
+                bool defVal = false;
+                if (elementPath.Contains(DefaultValueDelimiter))
+                {
+                    path = elementPath.Split(DefaultValueDelimiter)[0];
+                    try
+                    {
+                        var val = elementPath.Split(DefaultValueDelimiter)[1];
+                        if (val.ToLower() == "true" || val.ToLower() == "false")
+                        {
+                            defVal = val.ToLower() == "true" ? true : false;
+                        }
+                        else if (val == "0" || val == "1")
+                        {
+                            defVal = val == "1" ? true : false;
+                        }
+                        else
+                        {
+                            defVal = bool.Parse(elementPath.Split(DefaultValueDelimiter)[1]);
+                        }
+                    }
+                    catch
+                    {
+                        Debug.PrintLine("Couldn't parse default digital value from: " + elementPath);
+                        defVal = defaultValue > 0 ? true : false;
+                    }
+                }
+                else
+                {
+                    defVal = defaultValue > 0 ? true : false;
+                }
+                var element = new DigitalElement(elementID, path, defVal);
                 Elements.Add(element);
+            }
+            finally
+            {
+                CMonitor.Exit(this);
             }
         }
 
@@ -61,20 +90,35 @@ namespace ElegantXml.Xml
         /// <param name="elementID">The 1-based ID of the element, which should match the Simpl+ module parameter's index.</param>
         public void ToggleValue(ushort elementID)
         {
+            if (!IsInitialized) { return; }
             if (elementID < 1)
             {
                 Debug.PrintLine("Couldn't toggle value for element. The index was invalid.");
                 return;
             }
-            using (var secure = new CCriticalSection())
+            try
             {
-                var element = Elements.Where((e) => e.ID == elementID).First();
-                if (element != null)
+                if (Elements == null ||
+                    Elements.Count <= 0 ||
+                    Elements.Where((e) => e.ID == elementID).Count() == 0)
                 {
-                    element.AttributeValue = !element.AttributeValue;
+                    Debug.PrintLine("No elements present to update Digital value on.");
+                    return;
                 }
+                CMonitor.Enter(this);
+                var element = Elements.Where((e) => e.ID == elementID).First();
+                if (element == null)
+                {
+                    Debug.PrintLine("Couldn't find element to update Digital value on.");
+                    return;
+                }
+                element.AttributeValue = !element.AttributeValue;
                 ReportValueChange(elementID, element.AttributeValue == true ? (ushort)1 : (ushort)0);
                 manager.IsSaveRequired(1);
+            }
+            finally
+            {
+                CMonitor.Exit(this);
             }
 
         }
@@ -86,13 +130,22 @@ namespace ElegantXml.Xml
         /// <param name="value">The new value to use as a boolean.</param>
         public void UpdateValue(ushort elementID, bool value)
         {
+            if (!IsInitialized) { return; }
             if (elementID < 1)
             {
                 Debug.PrintLine("Couldn't update value for Digital element. The index was invalid.");
                 return;
             }
-            using (var secure = new CCriticalSection())
+            try
             {
+                if (Elements == null ||
+                    Elements.Count <= 0 ||
+                    Elements.Where((e) => e.ID == elementID).Count() == 0)
+                {
+                    Debug.PrintLine("No elements present to update Digital value on.");
+                    return;
+                }
+                CMonitor.Enter(this);
                 var element = Elements.Where((e) => e.ID == elementID).First();
                 if (element == null)
                 {
@@ -102,6 +155,10 @@ namespace ElegantXml.Xml
                 element.AttributeValue = value;
                 ReportValueChange(elementID, element.AttributeValue == true ? (ushort)1 : (ushort)0);
                 manager.IsSaveRequired(1);
+            }
+            finally
+            {
+                CMonitor.Exit(this);
             }
 
         }

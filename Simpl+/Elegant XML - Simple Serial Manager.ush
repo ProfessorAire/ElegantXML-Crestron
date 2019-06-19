@@ -1,0 +1,1355 @@
+[BEGIN]
+  Version=1
+[END]
+[BEGIN]
+  ObjTp=FSgntr
+  Sgntr=UserSPlus
+  RelVrs=1
+  IntStrVrs=1
+  SPlusVrs=4.04.01
+  CrossCplrVrs=1.3
+[END]
+[BEGIN]
+  ObjTp=Hd
+  IncludePath1=
+  Cmn1=	Simple version of the XML manager, with a built-in serial processor.
+  Cmn2=\\	This allows for a single file for management of XML files with\\
+  Cmn3=	just string values.
+[END]
+[BEGIN]
+  ObjTp=Symbol
+  Exclusions=1,19,20,21,88,89,167,168,179,213,214,215,216,217,225,226,248,249,266,267,310,362,378,380,405,407,408,409,478,522,537,554,586,590,611,624,718,756,767,830,841,842,854,883,955,1032,1062,1079,1128,1129,1134,1140,1157,1158,1195,1199,1220,1221,1222,1223,1299,1348,1349,1439,1472,1473,1499,1746,1803,1975,2229,2354,2514,2523,2532,2706,2707,3235,3236,3427,3454,3567,3568,3601,3602,3708,3902,3903,3912,3918,3925,3926,4206,4207,
+  Exclusions_CDS=5
+  Inclusions_CDS=6
+  Name=Elegant XML - Simple Serial Manager
+  SmplCName=Elegant XML - Simple Serial Manager.usp
+  Code=1
+  SysRev5=4.000
+  SMWRev=3.00.00
+  InputCue1=[~UNUSED~]
+  InputSigType1=Digital
+  InputCue2=[~UNUSED~]
+  InputSigType2=Digital
+  InputCue3=[~UNUSED~]
+  InputSigType3=Digital
+  InputCue4=[~UNUSED~]
+  InputSigType4=Digital
+  InputCue5=[~UNUSED~]
+  InputSigType5=Digital
+  InputCue6=[~UNUSED~]
+  InputSigType6=Digital
+  InputCue7=LoadFile
+  InputSigType7=Digital
+  InputCue8=SaveFile
+  InputSigType8=Digital
+  InputCue9=[~UNUSED~]
+  InputSigType9=Digital
+  InputCue10=EnableDebug
+  InputSigType10=Digital
+  InputCue11=[~UNUSED~]
+  InputSigType11=Digital
+  InputCue12=[~UNUSED~]
+  InputSigType12=Digital
+  InputCue13=[~UNUSED~]
+  InputSigType13=Digital
+  InputCue14=[~UNUSED~]
+  InputSigType14=Digital
+  InputCue15=[~UNUSED~]
+  InputSigType15=Digital
+  InputCue16=[~UNUSED~]
+  InputSigType16=Digital
+  InputCue17=[~UNUSED~]
+  InputSigType17=Digital
+  InputCue18=[~UNUSED~]
+  InputSigType18=Digital
+  InputCue19=[~UNUSED~]
+  InputSigType19=Digital
+  OutputCue1=[~UNUSED~]
+  OutputSigType1=Digital
+  OutputCue2=[~UNUSED~]
+  OutputSigType2=Digital
+  OutputCue3=[~UNUSED~]
+  OutputSigType3=Digital
+  OutputCue4=[~UNUSED~]
+  OutputSigType4=Digital
+  OutputCue5=[~UNUSED~]
+  OutputSigType5=Digital
+  OutputCue6=[~UNUSED~]
+  OutputSigType6=Digital
+  OutputCue7=IsLoading
+  OutputSigType7=Digital
+  OutputCue8=LoadSuccessPulse
+  OutputSigType8=Digital
+  OutputCue9=LoadFailurePulse
+  OutputSigType9=Digital
+  OutputCue10=[~UNUSED~]
+  OutputSigType10=Digital
+  OutputCue11=IsSaveNeeded
+  OutputSigType11=Digital
+  OutputCue12=IsSaving
+  OutputSigType12=Digital
+  OutputCue13=SaveSuccessPulse
+  OutputSigType13=Digital
+  OutputCue14=SaveFailurePulse
+  OutputSigType14=Digital
+  OutputCue15=[~UNUSED~]
+  OutputSigType15=Digital
+  InputList2Cue1=InputValue[#]
+  InputList2SigType1=Serial
+  OutputList2Cue1=Progress
+  OutputList2SigType1=Analog
+  OutputList2Cue2=[~UNUSED~]
+  OutputList2SigType2=Serial
+  OutputList2Cue3=ErrorMessage
+  OutputList2SigType3=Serial
+  OutputList2Cue4=[~UNUSED~]
+  OutputList2SigType4=Serial
+  OutputList2Cue5=OutputValue[#]
+  OutputList2SigType5=Serial
+  ParamCue1=[Reference Name]
+  ParamCue2=FileName
+  ParamSigType2=String
+  ParamCue3=RootElement
+  ParamSigType3=String
+  ParamCue4=ManagerID,1d,2d,3d,4d,5d
+  ParamSigType4=List
+  ParamCue5=[~UNUSED~]
+  ParamSigType5=Constant
+  ParamCue6=PathDelimiter
+  ParamSigType6=String
+  ParamCue7=DefaultValueDelimiter
+  ParamSigType7=String
+  ParamCue8=[~UNUSED~]
+  ParamSigType8=Constant
+  ParamCue9=[~UNUSED~]
+  ParamSigType9=Constant
+  ParamCue10=[~UNUSED~]
+  ParamSigType10=Constant
+  ParamCue11=[~UNUSED~]
+  ParamSigType11=Constant
+  ParamCue12=[~UNUSED~]
+  ParamSigType12=Constant
+  ParamCue13=[~UNUSED~]
+  ParamSigType13=Constant
+  ParamCue14=[~UNUSED~]
+  ParamSigType14=Constant
+  ParamCue15=[~UNUSED~]
+  ParamSigType15=Constant
+  ParamCue16=[~UNUSED~]
+  ParamSigType16=Constant
+  ParamCue17=[~UNUSED~]
+  ParamSigType17=Constant
+  ParamCue18=[~UNUSED~]
+  ParamSigType18=Constant
+  ParamCue19=[~UNUSED~]
+  ParamSigType19=Constant
+  ParamCue20=[~UNUSED~]
+  ParamSigType20=Constant
+  ParamCue21=XmlPath[1]
+  ParamSigType21=String
+  ParamCue22=XmlPath[2]
+  ParamSigType22=String
+  ParamCue23=XmlPath[3]
+  ParamSigType23=String
+  ParamCue24=XmlPath[4]
+  ParamSigType24=String
+  ParamCue25=XmlPath[5]
+  ParamSigType25=String
+  ParamCue26=XmlPath[6]
+  ParamSigType26=String
+  ParamCue27=XmlPath[7]
+  ParamSigType27=String
+  ParamCue28=XmlPath[8]
+  ParamSigType28=String
+  ParamCue29=XmlPath[9]
+  ParamSigType29=String
+  ParamCue30=XmlPath[10]
+  ParamSigType30=String
+  ParamCue31=XmlPath[11]
+  ParamSigType31=String
+  ParamCue32=XmlPath[12]
+  ParamSigType32=String
+  ParamCue33=XmlPath[13]
+  ParamSigType33=String
+  ParamCue34=XmlPath[14]
+  ParamSigType34=String
+  ParamCue35=XmlPath[15]
+  ParamSigType35=String
+  ParamCue36=XmlPath[16]
+  ParamSigType36=String
+  ParamCue37=XmlPath[17]
+  ParamSigType37=String
+  ParamCue38=XmlPath[18]
+  ParamSigType38=String
+  ParamCue39=XmlPath[19]
+  ParamSigType39=String
+  ParamCue40=XmlPath[20]
+  ParamSigType40=String
+  ParamCue41=XmlPath[21]
+  ParamSigType41=String
+  ParamCue42=XmlPath[22]
+  ParamSigType42=String
+  ParamCue43=XmlPath[23]
+  ParamSigType43=String
+  ParamCue44=XmlPath[24]
+  ParamSigType44=String
+  ParamCue45=XmlPath[25]
+  ParamSigType45=String
+  ParamCue46=XmlPath[26]
+  ParamSigType46=String
+  ParamCue47=XmlPath[27]
+  ParamSigType47=String
+  ParamCue48=XmlPath[28]
+  ParamSigType48=String
+  ParamCue49=XmlPath[29]
+  ParamSigType49=String
+  ParamCue50=XmlPath[30]
+  ParamSigType50=String
+  ParamCue51=XmlPath[31]
+  ParamSigType51=String
+  ParamCue52=XmlPath[32]
+  ParamSigType52=String
+  ParamCue53=XmlPath[33]
+  ParamSigType53=String
+  ParamCue54=XmlPath[34]
+  ParamSigType54=String
+  ParamCue55=XmlPath[35]
+  ParamSigType55=String
+  ParamCue56=XmlPath[36]
+  ParamSigType56=String
+  ParamCue57=XmlPath[37]
+  ParamSigType57=String
+  ParamCue58=XmlPath[38]
+  ParamSigType58=String
+  ParamCue59=XmlPath[39]
+  ParamSigType59=String
+  ParamCue60=XmlPath[40]
+  ParamSigType60=String
+  ParamCue61=XmlPath[41]
+  ParamSigType61=String
+  ParamCue62=XmlPath[42]
+  ParamSigType62=String
+  ParamCue63=XmlPath[43]
+  ParamSigType63=String
+  ParamCue64=XmlPath[44]
+  ParamSigType64=String
+  ParamCue65=XmlPath[45]
+  ParamSigType65=String
+  ParamCue66=XmlPath[46]
+  ParamSigType66=String
+  ParamCue67=XmlPath[47]
+  ParamSigType67=String
+  ParamCue68=XmlPath[48]
+  ParamSigType68=String
+  ParamCue69=XmlPath[49]
+  ParamSigType69=String
+  ParamCue70=XmlPath[50]
+  ParamSigType70=String
+  ParamCue71=XmlPath[51]
+  ParamSigType71=String
+  ParamCue72=XmlPath[52]
+  ParamSigType72=String
+  ParamCue73=XmlPath[53]
+  ParamSigType73=String
+  ParamCue74=XmlPath[54]
+  ParamSigType74=String
+  ParamCue75=XmlPath[55]
+  ParamSigType75=String
+  ParamCue76=XmlPath[56]
+  ParamSigType76=String
+  ParamCue77=XmlPath[57]
+  ParamSigType77=String
+  ParamCue78=XmlPath[58]
+  ParamSigType78=String
+  ParamCue79=XmlPath[59]
+  ParamSigType79=String
+  ParamCue80=XmlPath[60]
+  ParamSigType80=String
+  ParamCue81=XmlPath[61]
+  ParamSigType81=String
+  ParamCue82=XmlPath[62]
+  ParamSigType82=String
+  ParamCue83=XmlPath[63]
+  ParamSigType83=String
+  ParamCue84=XmlPath[64]
+  ParamSigType84=String
+  ParamCue85=XmlPath[65]
+  ParamSigType85=String
+  ParamCue86=XmlPath[66]
+  ParamSigType86=String
+  ParamCue87=XmlPath[67]
+  ParamSigType87=String
+  ParamCue88=XmlPath[68]
+  ParamSigType88=String
+  ParamCue89=XmlPath[69]
+  ParamSigType89=String
+  ParamCue90=XmlPath[70]
+  ParamSigType90=String
+  ParamCue91=XmlPath[71]
+  ParamSigType91=String
+  ParamCue92=XmlPath[72]
+  ParamSigType92=String
+  ParamCue93=XmlPath[73]
+  ParamSigType93=String
+  ParamCue94=XmlPath[74]
+  ParamSigType94=String
+  ParamCue95=XmlPath[75]
+  ParamSigType95=String
+  ParamCue96=XmlPath[76]
+  ParamSigType96=String
+  ParamCue97=XmlPath[77]
+  ParamSigType97=String
+  ParamCue98=XmlPath[78]
+  ParamSigType98=String
+  ParamCue99=XmlPath[79]
+  ParamSigType99=String
+  ParamCue100=XmlPath[80]
+  ParamSigType100=String
+  ParamCue101=XmlPath[81]
+  ParamSigType101=String
+  ParamCue102=XmlPath[82]
+  ParamSigType102=String
+  ParamCue103=XmlPath[83]
+  ParamSigType103=String
+  ParamCue104=XmlPath[84]
+  ParamSigType104=String
+  ParamCue105=XmlPath[85]
+  ParamSigType105=String
+  ParamCue106=XmlPath[86]
+  ParamSigType106=String
+  ParamCue107=XmlPath[87]
+  ParamSigType107=String
+  ParamCue108=XmlPath[88]
+  ParamSigType108=String
+  ParamCue109=XmlPath[89]
+  ParamSigType109=String
+  ParamCue110=XmlPath[90]
+  ParamSigType110=String
+  ParamCue111=XmlPath[91]
+  ParamSigType111=String
+  ParamCue112=XmlPath[92]
+  ParamSigType112=String
+  ParamCue113=XmlPath[93]
+  ParamSigType113=String
+  ParamCue114=XmlPath[94]
+  ParamSigType114=String
+  ParamCue115=XmlPath[95]
+  ParamSigType115=String
+  ParamCue116=XmlPath[96]
+  ParamSigType116=String
+  ParamCue117=XmlPath[97]
+  ParamSigType117=String
+  ParamCue118=XmlPath[98]
+  ParamSigType118=String
+  ParamCue119=XmlPath[99]
+  ParamSigType119=String
+  ParamCue120=XmlPath[100]
+  ParamSigType120=String
+  MinVariableInputs=19
+  MaxVariableInputs=19
+  MinVariableInputsList2=1
+  MaxVariableInputsList2=100
+  MinVariableOutputs=15
+  MaxVariableOutputs=15
+  MinVariableOutputsList2=5
+  MaxVariableOutputsList2=104
+  MinVariableParams=20
+  MaxVariableParams=119
+  Expand=expand_separately
+  Expand2=expand_All_with_Any
+  ProgramTree=Logic
+  SymbolTree=46
+  UserSymTreeName=Elegant Modules
+  Hint=
+  PdfHelp=Elegant XML - Simple Serial Manager.pdf
+  HelpID= 
+  Render=4
+  Smpl-C=16
+  CompilerCode=-48
+  CompilerParamCode=27
+  CompilerParamCode5=14
+  NumFixedParams=1
+  Pp1=1
+  Pp2=2
+  Pp3=3
+  Pp4=4
+  Pp6=6
+  Pp7=7
+  Pp21=21
+  Pp22=22
+  Pp23=23
+  Pp24=24
+  Pp25=25
+  Pp26=26
+  Pp27=27
+  Pp28=28
+  Pp29=29
+  Pp30=30
+  Pp31=31
+  Pp32=32
+  Pp33=33
+  Pp34=34
+  Pp35=35
+  Pp36=36
+  Pp37=37
+  Pp38=38
+  Pp39=39
+  Pp40=40
+  Pp41=41
+  Pp42=42
+  Pp43=43
+  Pp44=44
+  Pp45=45
+  Pp46=46
+  Pp47=47
+  Pp48=48
+  Pp49=49
+  Pp50=50
+  Pp51=51
+  Pp52=52
+  Pp53=53
+  Pp54=54
+  Pp55=55
+  Pp56=56
+  Pp57=57
+  Pp58=58
+  Pp59=59
+  Pp60=60
+  Pp61=61
+  Pp62=62
+  Pp63=63
+  Pp64=64
+  Pp65=65
+  Pp66=66
+  Pp67=67
+  Pp68=68
+  Pp69=69
+  Pp70=70
+  Pp71=71
+  Pp72=72
+  Pp73=73
+  Pp74=74
+  Pp75=75
+  Pp76=76
+  Pp77=77
+  Pp78=78
+  Pp79=79
+  Pp80=80
+  Pp81=81
+  Pp82=82
+  Pp83=83
+  Pp84=84
+  Pp85=85
+  Pp86=86
+  Pp87=87
+  Pp88=88
+  Pp89=89
+  Pp90=90
+  Pp91=91
+  Pp92=92
+  Pp93=93
+  Pp94=94
+  Pp95=95
+  Pp96=96
+  Pp97=97
+  Pp98=98
+  Pp99=99
+  Pp100=100
+  Pp101=101
+  Pp102=102
+  Pp103=103
+  Pp104=104
+  Pp105=105
+  Pp106=106
+  Pp107=107
+  Pp108=108
+  Pp109=109
+  Pp110=110
+  Pp111=111
+  Pp112=112
+  Pp113=113
+  Pp114=114
+  Pp115=115
+  Pp116=116
+  Pp117=117
+  Pp118=118
+  Pp119=119
+  Pp120=120
+  MPp=120
+  NVStorage=10
+  ParamSigType1=String
+  SmplCInputCue1=o#
+  SmplCOutputCue1=i#
+  SmplCInputList2Cue1=an#
+  SmplCOutputList2Cue1=ai#
+  SPlus2CompiledName=S2_Elegant_XML___Simple_Serial_Manager
+  SymJam=NonExclusive
+  FileName=Elegant XML - Simple Serial Manager.ush
+  SIMPLPlusModuleEncoding=0
+  clz1=ElegantXMLv1.2
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=1
+  Tp=1
+  NoS=False
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=2
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=3
+  Tp=1
+  HD=True
+  DV=Config
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=4
+  Tp=1
+  HD=True
+  DV=1d
+  Sgn=0
+  Lng=False
+  NF=1
+  NoS=True
+  DNF=1
+  VVS=2
+  VN=5
+  Val1=1d
+  Lbl1=Processor 1
+  Val2=2d
+  Lbl2=Processor 2
+  Val3=3d
+  Lbl3=Processor 3
+  Val4=4d
+  Lbl4=Processor 4
+  Val5=5d
+  Lbl5=Processor 5
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=6
+  Tp=1
+  HD=True
+  DV=.
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=7
+  Tp=1
+  HD=True
+  DV=|
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=21
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=22
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=23
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=24
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=25
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=26
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=27
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=28
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=29
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=30
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=31
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=32
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=33
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=34
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=35
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=36
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=37
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=38
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=39
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=40
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=41
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=42
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=43
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=44
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=45
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=46
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=47
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=48
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=49
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=50
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=51
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=52
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=53
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=54
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=55
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=56
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=57
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=58
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=59
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=60
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=61
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=62
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=63
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=64
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=65
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=66
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=67
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=68
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=69
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=70
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=71
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=72
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=73
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=74
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=75
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=76
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=77
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=78
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=79
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=80
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=81
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=82
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=83
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=84
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=85
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=86
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=87
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=88
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=89
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=90
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=91
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=92
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=93
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=94
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=95
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=96
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=97
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=98
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=99
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=100
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=101
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=102
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=103
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=104
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=105
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=106
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=107
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=108
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=109
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=110
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=111
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=112
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=113
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=114
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=115
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=116
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=117
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=118
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=119
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]
+[BEGIN]
+  ObjTp=Dp
+  H=120
+  Tp=1
+  HD=False
+  NoS=False
+  VVS=0
+[END]

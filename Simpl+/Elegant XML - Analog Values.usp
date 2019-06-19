@@ -3,16 +3,16 @@
 
 //____Compiler Directives____
 
-#SYMBOL_NAME "Elegant XML - Analog Values v1.1"
+#SYMBOL_NAME "Elegant XML - Analog Values"
 #ENABLE_STACK_CHECKING
 #DEFAULT_VOLATILE
 #CATEGORY "46" "Elegant Modules"
 #DEFINE_CONSTANT MaxItems 50
 #ANALOG_SERIAL_EXPAND AllWithAny
-#HELP_PDF_FILE "Elegant XML - Analog Values v1.0.pdf"
+#HELP_PDF_FILE "Elegant XML - Analog Values.pdf"
 
 #INCLUDEPATH ""
-#USER_SIMPLSHARP_LIBRARY "ElegantXMLv1.1"
+#USER_SIMPLSHARP_LIBRARY "ElegantXML"
 
 #Help_Begin
 
@@ -24,6 +24,7 @@ DIGITAL_OUTPUT _SKIP_, IsInitialized;
 ANALOG_OUTPUT _SKIP_,OutputValue[MaxItems];
 INTEGER_PARAMETER ManagerID;
 STRING_PARAMETER _SKIP_,_SKIP_,XmlPath[MaxItems][512];
+
 #BEGIN_PARAMETER_PROPERTIES ManagerID
     propValidUnits = unitDecimal;
     propDefaultUnit = unitDecimal;
@@ -46,15 +47,13 @@ callback function ProcessIsInitialized(integer state)
 
 //____Events____
 
-//PUSH
-//RELEASE
 CHANGE InputValue
 {
     integer i;
+    if(processor.IsProcessorInitialized = 0) { return; }
     i = GetLastModifiedArrayIndex();
     processor.UpdateValue(i, InputValue[i]);
 }
-//EVENT
 
 //____Start-Up Code____
 FUNCTION Main() {
@@ -62,10 +61,11 @@ FUNCTION Main() {
     WaitForInitializationComplete();
     while(processor.IsManagerReady(ManagerID) = 0)
     {
-         Delay(1000);
+         Delay(100);
     }
     RegisterDelegate(processor, ReportValueChange, ProcessValueChange);
     RegisterDelegate(processor, ReportIsInitialized, ProcessIsInitialized);
+ 
     for(i = 1 to MaxItems)
     {
         if(IsSignalDefined(OutputValue[i]) && XmlPath[i] <> "")

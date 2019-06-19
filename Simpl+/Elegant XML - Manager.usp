@@ -3,28 +3,31 @@
 
 //____Compiler Directives____
 
-#SYMBOL_NAME "Elegant XML - Manager v1.1"
+#SYMBOL_NAME "Elegant XML - Manager"
 #ENABLE_STACK_CHECKING
 #ENABLE_TRACE
 #DEFAULT_VOLATILE
 #CATEGORY "46" "Elegant Modules"
-#HELP_PDF_FILE "Elegant XML - Manager v1.1.pdf"
+#HELP_PDF_FILE "Elegant XML - Manager.pdf"
 
 #INCLUDEPATH ""
-#USER_SIMPLSHARP_LIBRARY "ElegantXMLv1.1"
+#USER_SIMPLSHARP_LIBRARY "ElegantXML"
 
 #Help_Begin
 
 #Help_End
 
 //____Inputs/Outputs
-DIGITAL_INPUT _SKIP_,_SKIP_,_SKIP_,LoadFile, SaveFile,_SKIP_,EnableDebug;
-DIGITAL_OUTPUT _SKIP_,_SKIP_,_SKIP_,IsLoading, LoadSuccessPulse, LoadFailurePulse,_SKIP_, IsSaveNeeded, IsSaving, SaveSuccessPulse, SaveFailurePulse, _SKIP_;
+DIGITAL_INPUT _SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,LoadFile, SaveFile,_SKIP_,EnableDebug;
+DIGITAL_OUTPUT _SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,IsLoading, LoadSuccessPulse, LoadFailurePulse,_SKIP_, IsSaveNeeded, IsSaving, SaveSuccessPulse, SaveFailurePulse, _SKIP_;
 ANALOG_OUTPUT Progress;
 STRING_OUTPUT _SKIP_,ErrorMessage;
 
 STRING_PARAMETER FileName[100], RootElement[20];
 INTEGER_PARAMETER ManagerID;
+INTEGER_PARAMETER _SKIP_;
+STRING_PARAMETER PathDelimiter[1];
+STRING_PARAMETER DefaultValueDelimiter[1];
 #BEGIN_PARAMETER_PROPERTIES ManagerID
     propValidUnits = unitDecimal;
     propDefaultUnit = unitDecimal;
@@ -35,6 +38,16 @@ INTEGER_PARAMETER ManagerID;
     propValidUnits = unitString;
     propDefaultUnit = unitString;
     propDefaultValue = "Config";
+#END_PARAMETER_PROPERTIES
+#BEGIN_PARAMETER_PROPERTIES DefaultValueDelimiter
+	propValidUnits = unitString;
+	propDefaultUnit = unitString;
+	propDefaultValue = "|";
+#END_PARAMETER_PROPERTIES
+#BEGIN_PARAMETER_PROPERTIES PathDelimiter
+	propValidUnits = unitString;
+	propDefaultUnit = unitString;
+	propDefaultValue = ".";
 #END_PARAMETER_PROPERTIES
 
 
@@ -116,7 +129,7 @@ RELEASE EnableDebug
 
 //____Start-Up Code____
 FUNCTION Main() {
-    xmlManager.Initialize(ManagerID, FileName, RootElement);
+    xmlManager.InitializeWithDelimiters(ManagerID, FileName, RootElement, PathDelimiter, DefaultValueDelimiter);
     RegisterDelegate(xmlManager, IsLoading, ProcessIsLoading);
     RegisterDelegate(xmlManager, IsSaving, ProcessIsSaving);
     RegisterDelegate(xmlManager, ReportProgress, ProcessProgress);

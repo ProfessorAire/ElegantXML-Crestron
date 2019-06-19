@@ -3,17 +3,17 @@
 
 //____Compiler Directives____
 
-#SYMBOL_NAME "Elegant XML - Serial Values v1.1"
+#SYMBOL_NAME "Elegant XML - Serial Values"
 #ENABLE_STACK_CHECKING
 #ENABLE_TRACE
 #DEFAULT_VOLATILE
 #CATEGORY "46" "Elegant Modules"
 #DEFINE_CONSTANT MaxItems 50
 #ANALOG_SERIAL_EXPAND AllWithAny
-#HELP_PDF_FILE "Elegant XML - Serial Values v1.0.pdf"
+#HELP_PDF_FILE "Elegant XML - Serial Values.pdf"
 
 #INCLUDEPATH ""
-#USER_SIMPLSHARP_LIBRARY "ElegantXMLv1.1"
+#USER_SIMPLSHARP_LIBRARY "ElegantXML"
 
 #Help_Begin
 
@@ -24,6 +24,7 @@ STRING_INPUT _SKIP_,_SKIP_,_SKIP_, InputValue[MaxItems][1500];
 DIGITAL_OUTPUT _SKIP_,IsInitialized,_SKIP_;
 STRING_OUTPUT OutputValue[MaxItems];
 INTEGER_PARAMETER ManagerID;
+
 STRING_PARAMETER _SKIP_,_SKIP_,XmlPath[MaxItems][512];
 #BEGIN_PARAMETER_PROPERTIES ManagerID
     propValidUnits = unitDecimal;
@@ -31,6 +32,7 @@ STRING_PARAMETER _SKIP_,_SKIP_,XmlPath[MaxItems][512];
     propDefaultValue = 1d;    
     propList = {1d, "Processor 1"}, {2d, "Processor 2"}, {3d, "Processor 3"}, {4d, "Processor 4"}, {5d, "Processor 5"};
 #END_PARAMETER_PROPERTIES
+
 
 SerialProcessor processor;
 
@@ -53,6 +55,7 @@ CHANGE InputValue
 {
     string temp[1500];
     integer i;
+    if(processor.IsProcessorInitialized = 0) { return; }
     i = GetLastModifiedArrayIndex();
     processor.UpdateValue(i, InputValue[i]);
 }
@@ -64,7 +67,7 @@ FUNCTION Main() {
     WaitForInitializationComplete();
     while(processor.IsManagerReady(ManagerID) = 0)
     {
-         Delay(1000);
+         Delay(100);
     }
     RegisterDelegate(processor, ReportValueChange, ProcessValueChange);
     RegisterDelegate(processor, ReportIsInitialized, ProcessIsInitialized);

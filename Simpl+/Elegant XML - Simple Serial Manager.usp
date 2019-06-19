@@ -1,0 +1,206 @@
+//Christopher McNeely
+//Elegant Video and Soundworks
+
+//____Compiler Directives____
+
+#SYMBOL_NAME "Elegant XML - Simple Serial Manager"
+#ENABLE_STACK_CHECKING
+#ENABLE_TRACE
+#DEFAULT_VOLATILE
+#ANALOG_SERIAL_EXPAND AllWithAny
+#CATEGORY "46" "Elegant Modules"
+#HELP_PDF_FILE "Elegant XML - Simple Serial Manager.pdf"
+
+#INCLUDEPATH ""
+#USER_SIMPLSHARP_LIBRARY "ElegantXML"
+
+#DEFINE_CONSTANT MaxItems 100
+#DEFINE_CONSTANT MaxLength 1500
+#DEFINE_CONSTANT MaxPath 1657
+
+#Help_Begin
+	Simple version of the XML manager, with a built-in serial processor.
+	This allows for a single file for management of XML files with
+	just string values.
+#Help_End
+
+//____Inputs/Outputs
+DIGITAL_INPUT _SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,LoadFile, SaveFile,_SKIP_,EnableDebug;
+DIGITAL_INPUT _SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_;
+STRING_INPUT InputValue[MaxItems][MaxLength];
+
+DIGITAL_OUTPUT _SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,IsLoading, LoadSuccessPulse, LoadFailurePulse,_SKIP_, IsSaveNeeded, IsSaving, SaveSuccessPulse, SaveFailurePulse, _SKIP_;
+ANALOG_OUTPUT Progress;
+STRING_OUTPUT _SKIP_,ErrorMessage,_SKIP_;
+STRING_OUTPUT OutputValue[MaxItems];
+
+STRING_PARAMETER FileName[100], RootElement[20];
+INTEGER_PARAMETER ManagerID;
+INTEGER_PARAMETER _SKIP_;
+STRING_PARAMETER PathDelimiter[1];
+STRING_PARAMETER DefaultValueDelimiter[1];
+INTEGER_PARAMETER _SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_,_SKIP_;
+STRING_PARAMETER _SKIP_,_SKIP_,_SKIP_,XmlPath[MaxItems][MaxPath];
+#BEGIN_PARAMETER_PROPERTIES ManagerID
+    propValidUnits = unitDecimal;
+    propDefaultUnit = unitDecimal;
+    propDefaultValue = 1d;    
+    propList = {1d, "Processor 1"}, {2d, "Processor 2"}, {3d, "Processor 3"}, {4d, "Processor 4"}, {5d, "Processor 5"};
+#END_PARAMETER_PROPERTIES
+#BEGIN_PARAMETER_PROPERTIES RootElement
+    propValidUnits = unitString;
+    propDefaultUnit = unitString;
+    propDefaultValue = "Config";
+#END_PARAMETER_PROPERTIES
+#BEGIN_PARAMETER_PROPERTIES DefaultValueDelimiter
+	propValidUnits = unitString;
+	propDefaultUnit = unitString;
+	propDefaultValue = "|";
+#END_PARAMETER_PROPERTIES
+#BEGIN_PARAMETER_PROPERTIES PathDelimiter
+	propValidUnits = unitString;
+	propDefaultUnit = unitString;
+	propDefaultValue = ".";
+#END_PARAMETER_PROPERTIES
+
+
+
+//Class_Name Local_Name
+Manager xmlManager;
+SerialProcessor processor;
+  
+  
+//____Global Variables____
+integer init;
+
+//____Functions____
+callback function ProcessValueChange(integer id, string value)
+{
+    OutputValue[id] = value;
+}
+
+callback function ProcessIsInitialized(integer state)
+{
+	if(state = 0 || init = 0 || IsLoading = 1 || IsSaving = 1)
+    {
+         return;
+    }
+    ErrorMessage = "";
+    xmlManager.LoadFile();
+}
+
+callback function ProcessIsSaving(integer state)
+{
+    IsSaving = state;
+}
+callback function ProcessIsLoading(integer state)
+{
+    IsLoading = state;
+}
+callback function ProcessProgress(integer percent)
+{
+    Progress = percent;   
+}
+callback function ProcessLoadSuccess()
+{
+    Pulse(10, LoadSuccessPulse);
+}
+callback function ProcessSaveSuccess()
+{
+    Pulse(10, SaveSuccessPulse);
+}
+callback function ProcessLoadFailure(string message)
+{
+    ErrorMessage = message;
+    Pulse(10, LoadFailurePulse);
+}
+callback function ProcessSaveFailure(string message)
+{
+    ErrorMessage = message;
+    Pulse(10, SaveFailurePulse);
+}
+
+callback function ProcessIsSaveRequired(integer state)
+{
+    IsSaveNeeded = state;
+}
+
+//____Events____
+
+PUSH LoadFile
+{
+    if(IsLoading = 1 || IsSaving = 1 || init = 0)
+    {
+         return;
+    }
+    ErrorMessage = "";
+    xmlManager.LoadFile();
+}
+
+PUSH SaveFile
+{
+    if(IsLoading = 1 || IsSaving = 1 || init = 0)
+    {
+         return;
+    }
+    ErrorMessage = "";
+    xmlManager.SaveFile();
+}
+
+PUSH EnableDebug
+{
+   xmlManager.DebugOn();
+}
+
+RELEASE EnableDebug
+{
+   xmlManager.DebugOff();
+}
+
+CHANGE InputValue
+{
+	string temp[MaxLength];
+	integer i;
+	i = GetLastModifiedArrayIndex();
+	processor.UpdateValue(i, InputValue[i]);
+}
+
+
+//____Start-Up Code____
+FUNCTION Main() {
+	integer i;
+    xmlManager.InitializeWithDelimiters(ManagerID, FileName, RootElement, PathDelimiter, DefaultValueDelimiter);
+    RegisterDelegate(xmlManager, IsLoading, ProcessIsLoading);
+    RegisterDelegate(xmlManager, IsSaving, ProcessIsSaving);
+    RegisterDelegate(xmlManager, ReportProgress, ProcessProgress);
+    RegisterDelegate(xmlManager, SaveFailure, ProcessSaveFailure);
+    RegisterDelegate(xmlManager, SaveSuccess, ProcessSaveSuccess);
+    RegisterDelegate(xmlManager, LoadFailure, ProcessLoadFailure);
+    RegisterDelegate(xmlManager, LoadSuccess, ProcessLoadSuccess);
+    RegisterDelegate(xmlManager, IsSaveRequired, ProcessIsSaveRequired);
+    WaitForInitializationComplete();
+    while(processor.IsManagerReady(ManagerID) = 0)
+    {
+    	Delay(100);
+    }
+    RegisterDelegate(processor, ReportValueChange, ProcessValueChange);
+    RegisterDelegate(processor, ReportIsInitialized, ProcessIsInitialized);
+    for(i = 1 to MaxItems)
+    {
+    	if(IsSignalDefined(OutputValue[i]) && XmlPath[i] <> "")
+    	{
+    		processor.AddValue(i, XmlPath[i], InputValue[i]);
+    	}
+    }
+              
+    // This delay is to allow for the possibility of other modules registering with this one,
+    // to provide additional Anlog/Digital functionality.
+    Delay(300);
+    
+    init = 1;
+    
+    processor.Initialize(ManagerID);
+
+
+
+}

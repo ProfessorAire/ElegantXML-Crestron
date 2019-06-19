@@ -11,6 +11,30 @@ namespace ElegantXml.Xml
     /// </summary>
     public class ProcessorBase
     {
+
+        internal char DefaultValueDelimiter
+        {
+            get
+            {
+                if (manager != null)
+                {
+                    return manager.DefaultValueDelimiter;
+                }
+                else
+                {
+                    return '|';
+                }
+            }
+        }
+
+        private bool isInitialized = false;
+        /// <summary>
+        /// Returns true when the module has initialized correctly.
+        /// </summary>
+        public bool IsInitialized { get { return isInitialized; } set { isInitialized = value; } }
+
+        public ushort IsProcessorInitialized { get { return IsInitialized ? (ushort)1 : (ushort)0; } }
+
         /// <summary>
         /// The Manager this processor is associated with.
         /// </summary>
@@ -31,6 +55,5 @@ namespace ElegantXml.Xml
             }
             return 0;
         }
-
     }
 }

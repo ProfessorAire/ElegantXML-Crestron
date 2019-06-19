@@ -83,6 +83,10 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>rem  S# preparation will execute after these operations</PostBuildEvent>
+    <PostBuildEvent>rem  S# preparation will execute after these operations
+rem Build twice to get the correct clz file copied to the Simpl+ folder for building.
+
+copy "$(TargetDir)ElegantXml.clz" "$(ProjectDir)..\Simpl+\ElegantXml.clz" /y
+exit 0</PostBuildEvent>
   </PropertyGroup>
 </Project>
