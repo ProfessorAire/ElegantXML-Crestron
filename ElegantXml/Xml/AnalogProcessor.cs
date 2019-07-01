@@ -24,13 +24,6 @@ namespace ElegantXml.Xml
         /// </summary>
         public ReportValueChangeDelegate ReportValueChange { get; set; }
 
-        public delegate void ReportIsInitializedDelegate(ushort state);
-        /// <summary>
-        /// Reports that the class is initialized back to the Simpl+ module.
-        /// </summary>
-        public ReportIsInitializedDelegate ReportIsInitialized { get; set; }
-
-
         /// <summary>
         /// Used by Simpl+.
         /// </summary>
@@ -38,6 +31,37 @@ namespace ElegantXml.Xml
             : base()
         {
             Elements = new List<AnalogElement>();
+        }
+
+        public ushort Initialize(ushort managerID)
+        {
+            if (IsInitialized) { return 1; }
+            try
+            {
+                if (Manager.AddProcessorToManager(managerID, this))
+                {
+                    defaultValueDelimiter = Manager.GetManagerDefaultValueDelimiter(managerID);
+                    ManagerId = managerID;
+                    IsInitialized = true;
+                }
+                else
+                {
+                    Debug.PrintLine("Couldn't add Analog Processor to manager, returning 0.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.PrintLine("Exception encountered while initializing Processor.");
+                Debug.PrintLine(ex.ToString());
+                return 0;
+            }
+            if (IsInitialized)
+            {
+                ReportIsInitialized(1);
+                CrestronEnvironment.AllowOtherAppsToRun();
+                return 1;
+            }
+            return 0;
         }
 
          /// <summary>
@@ -50,7 +74,6 @@ namespace ElegantXml.Xml
         {
             try
             {
-                CMonitor.Enter(this);
                 var path = elementPath;
                 ushort defVal = 0;
                 if (elementPath.Contains(DefaultValueDelimiter))
@@ -73,9 +96,10 @@ namespace ElegantXml.Xml
                 var element = new AnalogElement(elementID, path, defVal);
                 Elements.Add(element);
             }
-            finally
+            catch (Exception ex)
             {
-                CMonitor.Exit(this);
+                Debug.PrintLine("Exception encountered while adding Analog value.");
+                Debug.PrintLine(ex.Message);
             }
         }
 
@@ -110,20 +134,13 @@ namespace ElegantXml.Xml
                 }
                 element.AttributeValue = value;
                 ReportValueChange(elementID, element.AttributeValue);
-                manager.IsSaveRequired(1);
+                Manager.SetManagerUpdateRequired(ManagerId, true);
             }
-            finally
+            catch (Exception ex)
             {
-                CMonitor.Exit(this);
+                Debug.PrintLine("Exception encountered while updating Analog value.");
+                Debug.PrintLine(ex.Message);
             }
-        }
-
-        /// <summary>
-        /// Sorts the list of elements by their path.
-        /// </summary>
-        public void Sort()
-        {
-            Elements = Elements.OrderBy((o) => o.AttributePath).ToList();
         }
 
         /// <summary>
@@ -144,25 +161,5 @@ namespace ElegantXml.Xml
                 Debug.PrintLine(ex.Message);
             }
         }
-
-
-        /// <summary>
-        /// Initializes the processor.
-        /// </summary>
-        /// <param name="managerID">The ID of the manager module this class should associate with.</param>
-        public void Initialize(ushort managerID)
-        {
-            if (IsInitialized == true) { return; }
-            var man = Manager.GetManagerByID(managerID);
-            if (man == null)
-            {
-                return;
-            }
-            man.AddAnalog(this);
-            IsInitialized = true;
-            ReportIsInitialized(1);
-        }
-
-
     }
 }

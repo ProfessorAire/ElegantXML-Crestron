@@ -20,7 +20,8 @@
 #Help_End
 
 //____Inputs/Outputs
-STRING_INPUT _SKIP_,_SKIP_,_SKIP_, InputValue[MaxItems][1500];
+DIGITAL_INPUT _SKIP_,Initialize,_SKIP_;
+STRING_INPUT InputValue[MaxItems][1500];
 DIGITAL_OUTPUT _SKIP_,IsInitialized,_SKIP_;
 STRING_OUTPUT OutputValue[MaxItems];
 INTEGER_PARAMETER ManagerID;
@@ -35,6 +36,7 @@ STRING_PARAMETER _SKIP_,_SKIP_,XmlPath[MaxItems][512];
 
 
 SerialProcessor processor;
+integer initialized;
 
 //____Functions____
 callback function ProcessValueChange(integer id, string value)
@@ -45,6 +47,7 @@ callback function ProcessValueChange(integer id, string value)
 callback function ProcessIsInitialized(integer state)
 {
     IsInitialized = state;
+    initialized = state;
 }
 
 //____Events____
@@ -55,20 +58,25 @@ CHANGE InputValue
 {
     string temp[1500];
     integer i;
-    if(processor.IsProcessorInitialized = 0) { return; }
+    if(initialized = 0) { return; }
     i = GetLastModifiedArrayIndex();
     processor.UpdateValue(i, InputValue[i]);
 }
 //EVENT
 
 //____Start-Up Code____
-FUNCTION Main() {
+FUNCTION Init() {
     integer i;
-    WaitForInitializationComplete();
+    //WaitForInitializationComplete();
     while(processor.IsManagerReady(ManagerID) = 0)
     {
          Delay(100);
     }
+    
+    i = random(10, 500);
+    delay(i);
+
+    
     RegisterDelegate(processor, ReportValueChange, ProcessValueChange);
     RegisterDelegate(processor, ReportIsInitialized, ProcessIsInitialized);
     for(i = 1 to MaxItems)
@@ -78,7 +86,14 @@ FUNCTION Main() {
              processor.AddValue(i, XmlPath[i], InputValue[i]);
         }
     }
-    processor.Sort();   
-    
-    processor.Initialize(ManagerID);
+    while(processor.Initialize(ManagerID) = 0)
+    {
+    	Delay(100);
+    }
+
+}
+
+PUSH Initialize
+{
+	Init();
 }

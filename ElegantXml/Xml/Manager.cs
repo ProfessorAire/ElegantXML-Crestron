@@ -14,7 +14,7 @@ namespace ElegantXml.Xml
         /// <summary>
         /// A list of the Manager classes that have been registered in the program.
         /// </summary>
-        private static List<Manager> Managers { get; set; }
+        private static Dictionary<ushort, Manager> Managers { get; set; }
 
         /// <summary>
         /// A list of the DigitalProcessors associated with this manager.
@@ -105,26 +105,48 @@ namespace ElegantXml.Xml
         /// </summary>
         public char PathDelimiter { get; set; }
 
+        private char defaultValueDelimiter = '|';
         /// <summary>
         /// Sets or retrieves the delimiter used to separate the path from the default value in the Simpl+ parameter.
         /// </summary>
-        public char DefaultValueDelimiter { get; set; }
+        public char DefaultValueDelimiter { get { return defaultValueDelimiter; } set { defaultValueDelimiter = value; } }
 
         public void SetDefaultValueDelimiter(string DelimiterCharacter)
         {
             DefaultValueDelimiter = DelimiterCharacter[0];
         }
 
+        //private double previousProgress = 0;
         /// <summary>
         /// Passes progress to the ReportProgress delegate, forcing the Crestron environment to allow other apps to process.
         /// </summary>
         /// <param name="progress"></param>
         private void YieldProgress(ushort progress)
         {
+            //var newProgress = Math.Floor((progress / 65535) * 100);
+            //if (newProgress > previousProgress)
+            //{
+            //    Debug.PrintLine("Reporting: " + newProgress + "%");
+            //    ReportProgress(progress);
+            //    CrestronEnvironment.Sleep(0);
+            //    CrestronEnvironment.AllowOtherAppsToRun();
+            //}
+            //previousProgress = newProgress;
+            //Debug.PrintLine("Setting: " + newProgress + "%");
+            //if (previousProgress >= 100)
+            //{
+            //    previousProgress = 0;
+            //}
             ReportProgress(progress);
             CrestronEnvironment.Sleep(0);
             CrestronEnvironment.AllowOtherAppsToRun();
         }
+
+        private CCriticalSection _fileLock = new CCriticalSection();
+        private CCriticalSection _analogLock = new CCriticalSection();
+        private CCriticalSection _digitalLock = new CCriticalSection();
+        private CCriticalSection _serialLock = new CCriticalSection();
+        private CCriticalSection _signedAnalogLock = new CCriticalSection();
 
         /// <summary>
         /// Returns string values to the Simpl+ module.
@@ -141,8 +163,6 @@ namespace ElegantXml.Xml
         /// Passes a save failure message to the Simpl+ module.
         /// </summary>
         public PassMessageDelegate SaveFailure { get; set; }
-
-        private object _crit = new Object();
 
         /// <summary>
         /// Provided for Simpl+ compatibility.
@@ -184,7 +204,7 @@ namespace ElegantXml.Xml
             {
                 string path = Path.Combine(@"\User\Config\App" + InitialParametersClass.ApplicationNumber, fileName);
                 FilePath = path;
-                
+
                 path = Path.Combine(@"\ROMDISK\Config\App" + InitialParametersClass.ApplicationNumber, fileName);
                 if (File.Exists(path))
                 {
@@ -205,21 +225,38 @@ namespace ElegantXml.Xml
         /// Adds an Analog processor to this manager instance.
         /// </summary>
         /// <param name="proc">The processor to add.</param>
-        public void AddAnalog(AnalogProcessor proc)
+        public bool AddAnalog(AnalogProcessor proc)
         {
+            if (proc == null)
+            {
+                Debug.PrintLine("Null processor, couldn't add to manager.");
+                return false;
+            }
             try
             {
-                CMonitor.Enter(_crit);
                 if (AnalogProcessors == null)
                 {
-                    AnalogProcessors = new List<AnalogProcessor>();
+                    if (_analogLock.TryEnter())
+                    {
+                        try
+                        {
+                            if (AnalogProcessors == null)
+                            {
+                                AnalogProcessors = new List<AnalogProcessor>();
+                            }
+                        }
+                        finally { _analogLock.Leave(); }
+                    }
                 }
                 AnalogProcessors.Add(proc);
-                Debug.PrintLine("Added analog XML processor.");
+                //Debug.PrintLine("Added analog XML processor. " + AnalogProcessors.Count + " total analog processors added.");
+                return true;
             }
-            finally
+            catch (Exception ex)
             {
-                CMonitor.Exit(_crit);
+                Debug.PrintLine("Exception encountered while adding Analog Processor to Manager.");
+                Debug.PrintLine(ex.Message);
+                return false;
             }
         }
 
@@ -227,21 +264,38 @@ namespace ElegantXml.Xml
         /// Adds a SignedAnalog processor to this manager instance.
         /// </summary>
         /// <param name="proc">The processor to add.</param>
-        public void AddSignedAnalog(SignedAnalogProcessor proc)
+        public bool AddSignedAnalog(SignedAnalogProcessor proc)
         {
+            if (proc == null)
+            {
+                Debug.PrintLine("Null processor, couldn't add to manager.");
+                return false;
+            }
             try
             {
-                CMonitor.Enter(_crit);
                 if (SignedAnalogProcessors == null)
                 {
-                    SignedAnalogProcessors = new List<SignedAnalogProcessor>();
+                    if (_signedAnalogLock.TryEnter())
+                    {
+                        try
+                        {
+                            if (SignedAnalogProcessors == null)
+                            {
+                                SignedAnalogProcessors = new List<SignedAnalogProcessor>();
+                            }
+                        }
+                        finally { _signedAnalogLock.Leave(); }
+                    }
                 }
                 SignedAnalogProcessors.Add(proc);
-                Debug.PrintLine("Added signed analog XML processor.");
+                //Debug.PrintLine("Added signed analog XML processor. " + SignedAnalogProcessors.Count + " total signed analog processors added.");
+                return true;
             }
-            finally
+            catch (Exception ex)
             {
-                CMonitor.Exit(_crit);
+                Debug.PrintLine("Exception encountered while adding Signed Analog Processor to Manager.");
+                Debug.PrintLine(ex.Message);
+                return false;
             }
         }
 
@@ -249,21 +303,38 @@ namespace ElegantXml.Xml
         /// Adds a Digital processor to this manager instance.
         /// </summary>
         /// <param name="proc">The processor to add.</param>
-        public void AddDigital(DigitalProcessor proc)
+        public bool AddDigital(DigitalProcessor proc)
         {
+            if (proc == null)
+            {
+                Debug.PrintLine("Null processor, couldn't add to manager.");
+                return false;
+            }
             try
             {
-                CMonitor.Enter(_crit);
                 if (DigitalProcessors == null)
                 {
-                    DigitalProcessors = new List<DigitalProcessor>();
+                    if (_digitalLock.TryEnter())
+                    {
+                        try
+                        {
+                            if (DigitalProcessors == null)
+                            {
+                                DigitalProcessors = new List<DigitalProcessor>();
+                            }
+                        }
+                        finally { _digitalLock.Leave(); }
+                    }
                 }
                 DigitalProcessors.Add(proc);
-                Debug.PrintLine("Added digital XML processor.");
+                //Debug.PrintLine("Added digital XML processor. " + DigitalProcessors.Count + " total digital processors added.");
+                return true;
             }
-            finally
+            catch (Exception ex)
             {
-                CMonitor.Exit(_crit);
+                Debug.PrintLine("Exception encountered while adding Digital Processor to Manager.");
+                Debug.PrintLine(ex.Message);
+                return false;
             }
         }
 
@@ -271,21 +342,38 @@ namespace ElegantXml.Xml
         /// Adds a Serial processor to this manager instance.
         /// </summary>
         /// <param name="proc">The processor to add.</param>
-        public void AddSerial(SerialProcessor proc)
+        public bool AddSerial(SerialProcessor proc)
         {
+            if (proc == null)
+            {
+                Debug.PrintLine("Null processor, couldn't add to manager.");
+                return false;
+            }
             try
             {
-                CMonitor.Enter(_crit);
                 if (SerialProcessors == null)
                 {
-                    SerialProcessors = new List<SerialProcessor>();
+                    if (_serialLock.TryEnter())
+                    {
+                        try
+                        {
+                            if (SerialProcessors == null)
+                            {
+                                SerialProcessors = new List<SerialProcessor>();
+                            }
+                        }
+                        finally { _serialLock.Leave(); }
+                    }
                 }
                 SerialProcessors.Add(proc);
-                Debug.PrintLine("Added serial XML processor.");
+                //Debug.PrintLine("Added serial XML processor. " + SerialProcessors.Count + " total serial processors added.");
+                return true;
             }
-            finally
+            catch (Exception ex)
             {
-                CMonitor.Exit(_crit);
+                Debug.PrintLine("Exception encountered while adding Serial Processor to Manager.");
+                Debug.PrintLine(ex.Message);
+                return false;
             }
         }
 
@@ -301,7 +389,11 @@ namespace ElegantXml.Xml
             CrestronConsole.PrintLine(DateTime.Now.ToShortDateString() + "|" + DateTime.Now.ToLongTimeString() + "|Loading xml file: " + FilePath);
             try
             {
-                CMonitor.Enter(_crit);
+                _analogLock.Enter();
+                _signedAnalogLock.Enter();
+                _digitalLock.Enter();
+                _serialLock.Enter();
+                _fileLock.Enter();
                 XDocument doc = null;
                 try
                 {
@@ -480,7 +572,11 @@ namespace ElegantXml.Xml
             }
             finally
             {
-                CMonitor.Exit(_crit);
+                _analogLock.Leave();
+                _signedAnalogLock.Leave();
+                _digitalLock.Leave();
+                _serialLock.Leave();
+                _fileLock.Leave();
             }
             CrestronConsole.PrintLine(DateTime.Now.ToShortDateString() + "|" + DateTime.Now.ToLongTimeString() + "|Finished loading xml file:" + FileName);
             LoadSuccess();
@@ -494,7 +590,7 @@ namespace ElegantXml.Xml
         /// </summary>
         private bool TryFindValue(string path, ref XDocument doc, out string outValue)
         {
-            Debug.PrintLine("Finding value in: " + path);
+            //Debug.PrintLine("Finding value in: " + path);
             XElement element = doc.Elements().First();
             var parts = path.Split(PathDelimiter);
             string[] slice = null;
@@ -513,7 +609,7 @@ namespace ElegantXml.Xml
                 {
                     if (element == null)
                     {
-                        Debug.PrintLine("Couldn't find value for the path: " + path);
+                        //Debug.PrintLine("Couldn't find value for the path: " + path);
                         return false;
                     }
 
@@ -544,14 +640,14 @@ namespace ElegantXml.Xml
 
             if (element == null)
             {
-                Debug.PrintLine("Couldn't find value for the path: " + path);
+                //Debug.PrintLine("Couldn't find value for the path: " + path);
                 return false;
             }
 
             try
             {
-                Debug.PrintLine("Finding a value. Element " + element.Name + " has " + (element.HasAttributes ? element.Attributes().Count() : 0) + " attributes.");
-                Debug.PrintLine("Finding a value. Element " + element.Name + " has " + (element.HasElements ? element.Elements().Count() : 0) + " elements.");
+                //Debug.PrintLine("Finding a value. Element " + element.Name + " has " + (element.HasAttributes ? element.Attributes().Count() : 0) + " attributes.");
+                //Debug.PrintLine("Finding a value. Element " + element.Name + " has " + (element.HasElements ? element.Elements().Count() : 0) + " elements.");
 
                 if (isElement)
                 {
@@ -560,7 +656,7 @@ namespace ElegantXml.Xml
                 }
                 else
                 {
-                    Debug.PrintLine("Looking for part: " + parts[parts.Length - 1]);
+                    //Debug.PrintLine("Looking for part: " + parts[parts.Length - 1]);
                     if (element.HasAttributes && element.Attributes().Where((a) => a.Name.ToLower() == parts[parts.Length - 1].ToLower()).Count() > 0)
                     {
                         outValue = element.Attributes().Where((a) => a.Name.ToLower() == parts[parts.Length - 1].ToLower()).FirstOrDefault().Value;
@@ -573,7 +669,7 @@ namespace ElegantXml.Xml
                     }
                     else
                     {
-                        Debug.PrintLine("Couldn't find a value.");
+                        //Debug.PrintLine("Couldn't find a value.");
                         return false;
                     }
                 }
@@ -597,7 +693,11 @@ namespace ElegantXml.Xml
             CrestronConsole.PrintLine(DateTime.Now.ToShortDateString() + "|" + DateTime.Now.ToLongTimeString() + "|Starting XML file saving for file: " + FilePath);
             try
             {
-                CMonitor.Enter(_crit);
+                _analogLock.Enter();
+                _signedAnalogLock.Enter();
+                _digitalLock.Enter();
+                _serialLock.Enter();
+                _fileLock.Enter();
                 XmlBuilder builder = null;
                 if (XmlDoc != null)
                 {
@@ -607,12 +707,27 @@ namespace ElegantXml.Xml
                 {
                     builder = new XmlBuilder(RootElement, PathDelimiter);
                 }
+
+                YieldProgress(0);
+                ushort step = (ushort)(65535 / GetTotalElements());
+                builder.ResetProgress(step);
+                builder.ProgressUpdated += (o, a) =>
+                    {
+                        YieldProgress(a.Progress);
+                    };
+
+                var markerTime = CrestronEnvironment.GetLocalTime().AddSeconds(20);
                 if (DigitalProcessors != null && !builder.WriteDigitals(DigitalProcessors))
                 {
                     SaveFailure("Unable to write all Digital elements.");
                     Debug.PrintLine("Unable to write all Digital elements.");
                     IsSaving(0);
                     return;
+                }
+                if (CrestronEnvironment.GetLocalTime() > markerTime)
+                {
+                    CrestronEnvironment.AllowOtherAppsToRun();
+                    markerTime = CrestronEnvironment.GetLocalTime().AddSeconds(20);
                 }
                 if (AnalogProcessors != null && !builder.WriteAnalogs(AnalogProcessors))
                 {
@@ -624,6 +739,11 @@ namespace ElegantXml.Xml
                         return;
                     }
                 }
+                if (CrestronEnvironment.GetLocalTime() > markerTime)
+                {
+                    CrestronEnvironment.AllowOtherAppsToRun();
+                    markerTime = CrestronEnvironment.GetLocalTime().AddSeconds(20);
+                }
                 if (SignedAnalogProcessors != null && !builder.WriteSignedAnalogs(SignedAnalogProcessors))
                 {
                     if (!builder.WriteSignedAnalogs(SignedAnalogProcessors))
@@ -633,6 +753,11 @@ namespace ElegantXml.Xml
                         IsSaving(0);
                         return;
                     }
+                }
+                if (CrestronEnvironment.GetLocalTime() > markerTime)
+                {
+                    CrestronEnvironment.AllowOtherAppsToRun();
+                    markerTime = CrestronEnvironment.GetLocalTime().AddSeconds(20);
                 }
                 if (SerialProcessors != null && !builder.WriteSerials(SerialProcessors))
                 {
@@ -680,11 +805,15 @@ namespace ElegantXml.Xml
             }
             finally
             {
-                CMonitor.Exit(_crit);
+                _analogLock.Leave();
+                _signedAnalogLock.Leave();
+                _digitalLock.Leave();
+                _serialLock.Leave();
+                _fileLock.Leave();
             }
         }
 
-        private static object _crits = new Object();
+        private static CCriticalSection _crits = new CCriticalSection();
 
         /// <summary>
         /// Adds a manager to the public static list of managers.
@@ -694,16 +823,21 @@ namespace ElegantXml.Xml
         {
             try
             {
-                CMonitor.Enter(_crits);
+                _crits.Enter();
                 if (Managers == null)
                 {
-                    Managers = new List<Manager>();
+                    Managers = new Dictionary<ushort, Manager>();
                 }
-                Managers.Add(processor);
+                Managers.Add(processor.ID, processor);
+            }
+            catch (Exception ex)
+            {
+                Debug.PrintLine("Exception encountered while adding manager via static AddManager method.");
+                Debug.PrintLine(ex.Message);
             }
             finally
             {
-                CMonitor.Exit(_crits);
+                _crits.Leave();
             }
         }
 
@@ -712,18 +846,111 @@ namespace ElegantXml.Xml
         /// </summary>
         /// <param name="ID">The ID of the manager to return.</param>
         /// <returns></returns>
-        public static Manager GetManagerByID(ushort ID)
+        public static Manager GetManagerByID(ushort id)
         {
-            if (Managers == null || Managers.Count <= 0) { return null; }
+            if (Managers == null || Managers.Keys.Contains(id) == false) { return null; }
+            return Managers[id];
+        }
+
+        public static char GetManagerDefaultValueDelimiter(ushort id)
+        {
+            if (Managers == null || Managers.Keys.Contains(id) == false) { return '|'; }
+            if (Managers.Keys.Contains(id) && Managers[id] != null)
+            {
+                return Managers[id].DefaultValueDelimiter;
+            }
+            return '|';
+        }
+
+        public static void SetManagerUpdateRequired(ushort id, bool updateRequired)
+        {
+            if (Managers == null || Managers.Keys.Contains(id) == false) { return; }
+            if (Managers[id] != null)
+            {
+                Managers[id].IsSaveRequired(updateRequired ? SimplBool.True : SimplBool.False);
+            }
+        }
+
+        public static bool GetManagerIsReady(ushort id)
+        {
+            if (Managers == null || Managers.Keys.Contains(id) == false) { return false; }
             try
             {
-                CMonitor.Enter(_crits);
-                var man = Managers.Where((p) => p.ID == ID).First();
-                return man;
+                return Managers.Keys.Contains(id);
             }
-            finally
+            catch (Exception ex)
             {
-                CMonitor.Exit(_crits);
+                Debug.PrintLine("Exception encountered when checking for manager preparedness!");
+                Debug.PrintLine(ex.Message);
+                return false;
+            }
+        }
+
+        public static bool AddProcessorToManager(ushort managerId, AnalogProcessor processor)
+        {
+            try
+            {
+                if (Managers == null || Managers.Keys.Contains(managerId) == false) { return false; }
+                var man = Managers[managerId];
+                if (man == null) { return false; }
+                return man.AddAnalog(processor);
+            }
+            catch (Exception ex)
+            {
+                Debug.PrintLine("Exception encountered while adding Analog processor to manager.");
+                Debug.PrintLine(ex.Message);
+                return false;
+            }
+        }
+
+        public static bool AddProcessorToManager(ushort managerId, SignedAnalogProcessor processor)
+        {
+            try
+            {
+                if (Managers == null || Managers.Keys.Contains(managerId) == false) { return false; }
+                var man = Managers[managerId];
+                if (man == null) { return false; }
+                return man.AddSignedAnalog(processor);
+            }
+            catch (Exception ex)
+            {
+                Debug.PrintLine("Exception encountered while adding Analog processor to manager.");
+                Debug.PrintLine(ex.Message);
+                return false;
+            }
+        }
+
+        public static bool AddProcessorToManager(ushort managerId, DigitalProcessor processor)
+        {
+            try
+            {
+                if (Managers == null || Managers.Keys.Contains(managerId) == false) { return false; }
+                var man = Managers[managerId];
+                if (man == null) { return false; }
+                return man.AddDigital(processor);
+            }
+            catch (Exception ex)
+            {
+                Debug.PrintLine("Exception encountered while adding Analog processor to manager.");
+                Debug.PrintLine(ex.Message);
+                return false;
+            }
+        }
+
+        public static bool AddProcessorToManager(ushort managerId, SerialProcessor processor)
+        {
+            try
+            {
+                if (Managers == null || Managers.Keys.Contains(managerId) == false) { return false; }
+                var man = Managers[managerId];
+                if (man == null) { return false; }
+                return man.AddSerial(processor);
+            }
+            catch (Exception ex)
+            {
+                Debug.PrintLine("Exception encountered while adding Analog processor to manager.");
+                Debug.PrintLine(ex.Message);
+                return false;
             }
         }
 
@@ -736,8 +963,6 @@ namespace ElegantXml.Xml
         {
             try
             {
-                CMonitor.Enter(_crit);
-
                 var total = 0;
                 if (DigitalProcessors != null)
                 {
@@ -773,9 +998,11 @@ namespace ElegantXml.Xml
                 }
                 return (ushort)total;
             }
-            finally
+            catch (Exception ex)
             {
-                CMonitor.Exit(_crit);
+                Debug.PrintLine("Exception encountered while counting total elements.");
+                Debug.PrintLine(ex.Message);
+                return 0;
             }
         }
 
