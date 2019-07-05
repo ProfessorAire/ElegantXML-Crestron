@@ -347,4 +347,5 @@ ASALocalRun/
 /Samples/*.lpz
 /Samples/*.vtz
 /Simpl+/*.clz
+/Simpl+/*.dll
 *.deploy.bat
