@@ -71,6 +71,7 @@
     <Compile Include="Xml\DigitalElement.cs">
     </Compile>
     <Compile Include="Xml\DigitalProcessor.cs" />
+    <Compile Include="Xml\ElementComparer.cs" />
     <Compile Include="Xml\IElement.cs" />
     <Compile Include="Xml\ProcessorBase.cs" />
     <Compile Include="Xml\ProgressEventArgs.cs" />

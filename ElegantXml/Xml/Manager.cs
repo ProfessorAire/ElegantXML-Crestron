@@ -9,7 +9,7 @@ using Crestron.SimplSharp;
 
 namespace ElegantXml.Xml
 {
-    public class Manager
+    public class Manager : IDisposable
     {
         /// <summary>
         /// A list of the Manager classes that have been registered in the program.
@@ -116,30 +116,26 @@ namespace ElegantXml.Xml
             DefaultValueDelimiter = DelimiterCharacter[0];
         }
 
-        //private double previousProgress = 0;
+        private double previousProgress = 0;
         /// <summary>
         /// Passes progress to the ReportProgress delegate, forcing the Crestron environment to allow other apps to process.
         /// </summary>
         /// <param name="progress"></param>
         private void YieldProgress(ushort progress)
         {
-            //var newProgress = Math.Floor((progress / 65535) * 100);
-            //if (newProgress > previousProgress)
-            //{
-            //    Debug.PrintLine("Reporting: " + newProgress + "%");
-            //    ReportProgress(progress);
-            //    CrestronEnvironment.Sleep(0);
-            //    CrestronEnvironment.AllowOtherAppsToRun();
-            //}
-            //previousProgress = newProgress;
-            //Debug.PrintLine("Setting: " + newProgress + "%");
-            //if (previousProgress >= 100)
-            //{
-            //    previousProgress = 0;
-            //}
-            ReportProgress(progress);
-            CrestronEnvironment.Sleep(0);
-            CrestronEnvironment.AllowOtherAppsToRun();
+            var newProgress = Math.Floor((double)(progress * 100) / 65535);
+            if (newProgress > previousProgress)
+            {
+                CrestronConsole.Print(".");
+                ReportProgress(progress);
+                CrestronEnvironment.Sleep(0);
+            }
+            previousProgress = newProgress;
+            if (previousProgress >= 100)
+            {
+                previousProgress = 0;
+                ReportProgress(0);
+            }
         }
 
         private CCriticalSection _fileLock = new CCriticalSection();
@@ -249,7 +245,6 @@ namespace ElegantXml.Xml
                     }
                 }
                 AnalogProcessors.Add(proc);
-                //Debug.PrintLine("Added analog XML processor. " + AnalogProcessors.Count + " total analog processors added.");
                 return true;
             }
             catch (Exception ex)
@@ -288,7 +283,6 @@ namespace ElegantXml.Xml
                     }
                 }
                 SignedAnalogProcessors.Add(proc);
-                //Debug.PrintLine("Added signed analog XML processor. " + SignedAnalogProcessors.Count + " total signed analog processors added.");
                 return true;
             }
             catch (Exception ex)
@@ -327,7 +321,6 @@ namespace ElegantXml.Xml
                     }
                 }
                 DigitalProcessors.Add(proc);
-                //Debug.PrintLine("Added digital XML processor. " + DigitalProcessors.Count + " total digital processors added.");
                 return true;
             }
             catch (Exception ex)
@@ -366,7 +359,6 @@ namespace ElegantXml.Xml
                     }
                 }
                 SerialProcessors.Add(proc);
-                //Debug.PrintLine("Added serial XML processor. " + SerialProcessors.Count + " total serial processors added.");
                 return true;
             }
             catch (Exception ex)
@@ -399,29 +391,32 @@ namespace ElegantXml.Xml
                 {
                     if (!Crestron.SimplSharp.CrestronIO.File.Exists(FilePath))
                     {
-                        Debug.PrintLine("Trying to write empty XML Document since none was found.");
-                        var newDoc = new XDocument();
-                        newDoc.Add(new XElement(RootElement));
-                        newDoc.Save(FilePath);
+                        Debug.PrintLine("Using empty XML Document since none was found.");
+                        doc = new XDocument();
+                        doc.Add(new XElement(RootElement));
                     }
-                    var content = Crestron.SimplSharp.CrestronIO.File.ReadToEnd(FilePath, Encoding.UTF8);
-                    var start = content.IndexOf("<?xml", 0);
-                    if (start < 0)
+                    else
                     {
-                        Debug.PrintLine("Couldn't find xml element to parse in the file.");
-                        CrestronConsole.PrintLine(DateTime.Now.ToShortDateString() + "|" + DateTime.Now.ToLongTimeString() + "| Failed to load xml file.");
-                        LoadFailure("Invalid XML file couldn't be loaded.");
-                        IsLoading(0);
-                        return;
-                    }
-                    content = content.Substring(start);
-                    var settings = new XmlReaderSettings();
-                    settings.IgnoreComments = false;
-                    using (var reader = new XmlReader(content, settings))
-                    {
-                        reader.MoveToContent();
-                        doc = XDocument.Load(reader);
-                        Debug.PrintLine("There are " + doc.Nodes().Where((n) => n.NodeType == XmlNodeType.Comment).Count() + " comments in this file.");
+
+                        var content = Crestron.SimplSharp.CrestronIO.File.ReadToEnd(FilePath, Encoding.UTF8);
+                        var start = content.IndexOf("<?xml", 0);
+                        if (start < 0)
+                        {
+                            Debug.PrintLine("Couldn't find xml element to parse in the file.");
+                            CrestronConsole.PrintLine(DateTime.Now.ToShortDateString() + "|" + DateTime.Now.ToLongTimeString() + "| Failed to load xml file.");
+                            LoadFailure("Invalid XML. File couldn't be loaded.");
+                            IsLoading(0);
+                            return;
+                        }
+                        content = content.Substring(start);
+                        var settings = new XmlReaderSettings();
+                        settings.IgnoreComments = false;
+                        using (var reader = new XmlReader(content, settings))
+                        {
+                            reader.MoveToContent();
+                            doc = XDocument.Load(reader);
+                            Debug.PrintLine("XML Document loaded into memory, ready to process.");
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -429,7 +424,7 @@ namespace ElegantXml.Xml
                     Debug.PrintLine("Exception occurred when loading XML document into XDocument variable.");
                     Debug.PrintLine(ex.Message);
                     CrestronConsole.PrintLine(DateTime.Now.ToShortDateString() + "|" + DateTime.Now.ToLongTimeString() + "| Failed to load xml file.");
-                    LoadFailure("Couldn't correctly parse the XML document provided.");
+                    LoadFailure("The document provided couldn't be parsed correctly. Check for invalid XML.");
                     IsLoading(0);
                     return;
                 }
@@ -442,6 +437,9 @@ namespace ElegantXml.Xml
                     return;
                 }
 
+                var element = doc.Elements().First();
+                var isValidElement = element.HasAttributes || element.HasElements;
+                
                 Debug.PrintLine("Starting to process XML elements.");
 
                 var value = "";
@@ -454,14 +452,12 @@ namespace ElegantXml.Xml
                         {
                             try
                             {
-                                if (TryFindValue(DigitalProcessors[i].Elements[j].AttributePath, ref doc, out value))
+                                if (isValidElement && TryFindValue(DigitalProcessors[i].Elements[j].AttributePath, element, out value))
                                 {
-                                    Debug.PrintLine("Setting value.");
                                     DigitalProcessors[i].UpdateValue(DigitalProcessors[i].Elements[j].ID, value);
                                 }
                                 else
                                 {
-                                    Debug.PrintLine("Setting value with default.");
                                     DigitalProcessors[i].UpdateValue(DigitalProcessors[i].Elements[j].ID, DigitalProcessors[i].Elements[j].DefaultValue);
                                 }
                             }
@@ -485,14 +481,12 @@ namespace ElegantXml.Xml
                         {
                             try
                             {
-                                if (TryFindValue(AnalogProcessors[i].Elements[j].AttributePath, ref doc, out value))
+                                if (isValidElement && TryFindValue(AnalogProcessors[i].Elements[j].AttributePath, element, out value))
                                 {
-                                    Debug.PrintLine("Setting value.");
                                     AnalogProcessors[i].UpdateValue(AnalogProcessors[i].Elements[j].ID, value);
                                 }
                                 else
                                 {
-                                    Debug.PrintLine("Setting value with default.");
                                     AnalogProcessors[i].UpdateValue(AnalogProcessors[i].Elements[j].ID, AnalogProcessors[i].Elements[j].DefaultValue);
                                 }
                             }
@@ -516,14 +510,12 @@ namespace ElegantXml.Xml
                         {
                             try
                             {
-                                if (TryFindValue(SignedAnalogProcessors[i].Elements[j].AttributePath, ref doc, out value))
+                                if (isValidElement && TryFindValue(SignedAnalogProcessors[i].Elements[j].AttributePath, element, out value))
                                 {
-                                    Debug.PrintLine("Setting value.");
                                     SignedAnalogProcessors[i].UpdateValue(SignedAnalogProcessors[i].Elements[j].ID, value);
                                 }
                                 else
                                 {
-                                    Debug.PrintLine("Setting value with default.");
                                     SignedAnalogProcessors[i].UpdateValue(SignedAnalogProcessors[i].Elements[j].ID, SignedAnalogProcessors[i].Elements[j].DefaultValue);
                                 }
                             }
@@ -537,24 +529,22 @@ namespace ElegantXml.Xml
                         }
                     }
                 }
+
                 if (SerialProcessors != null)
                 {
                     Debug.PrintLine("Processing Serials");
-                    Debug.PrintLine("There are " + SerialProcessors.Count + " serial processors.");
                     for (var i = 0; i < SerialProcessors.Count; i++)
                     {
                         for (ushort j = 0; j < SerialProcessors[i].Elements.Count; j++)
                         {
                             try
                             {
-                                if (TryFindValue(SerialProcessors[i].Elements[j].AttributePath, ref doc, out value))
+                                if (isValidElement && TryFindValue(SerialProcessors[i].Elements[j].AttributePath, element, out value))
                                 {
-                                    Debug.PrintLine("Setting value.");
                                     SerialProcessors[i].UpdateValue(SerialProcessors[i].Elements[j].ID, value);
                                 }
                                 else
                                 {
-                                    Debug.PrintLine("Setting value with default.");
                                     SerialProcessors[i].UpdateValue(SerialProcessors[i].Elements[j].ID, SerialProcessors[i].Elements[j].DefaultValue);
                                 }
                             }
@@ -578,110 +568,88 @@ namespace ElegantXml.Xml
                 _serialLock.Leave();
                 _fileLock.Leave();
             }
-            CrestronConsole.PrintLine(DateTime.Now.ToShortDateString() + "|" + DateTime.Now.ToLongTimeString() + "|Finished loading xml file:" + FileName);
+            CrestronConsole.PrintLine("\n" + DateTime.Now.ToShortDateString() + "|" + DateTime.Now.ToLongTimeString() + "|Finished loading xml file:" + FileName);
             LoadSuccess();
             IsLoading(0);
             IsSaveRequired(0);
+            YieldProgress(65535);
         }
 
         /// <summary>
         /// Used publicly to find the value of a path element provided by a companion Simpl+ module.
         /// Includes a default value to pass to the element's output if no default is found.
         /// </summary>
-        private bool TryFindValue(string path, ref XDocument doc, out string outValue)
+        private bool TryFindValue(string path, XElement element, out string outValue)
         {
-            //Debug.PrintLine("Finding value in: " + path);
-            XElement element = doc.Elements().First();
-            var parts = path.Split(PathDelimiter);
-            string[] slice = null;
-            var name = "";
-            var attribute = "";
-            var value = "";
             outValue = "";
 
-            var isElement = false;
-            if (parts.Last().Contains("=")) { isElement = true; }
-            if (parts.Last() == "" || parts.Last() == string.Empty) { isElement = true; }
+            if (element == null)
+            {
+                Debug.PrintLine("Null value found while finding value for path: " + path);
+                return false;
+            }
 
+            var parts = path.Split(PathDelimiter);
+            
+            var isElement = false;
+            if (parts.Last().Contains("=") ||
+                parts.Last() == "" ||
+                parts.Last() == string.Empty)
+            {
+                isElement = true;
+            }
+            
             try
             {
                 for (var i = 0; i < parts.Length - 1; i++)
                 {
-                    if (element == null)
-                    {
-                        //Debug.PrintLine("Couldn't find value for the path: " + path);
-                        return false;
-                    }
-
                     if (parts[i].Contains(" "))
                     {
-                        slice = parts[i].Split(' ');
-                        name = slice[0].Replace(" ", "");
-                        attribute = slice[1].Replace(" ", "");
-                        value = attribute.Split('=')[1].Replace("=", "").Replace("\"", "");
-                        attribute = attribute.Split('=')[0].Replace("=", "");
-                        element = element.Elements().Where((e) => e.Name.ToLower() == name.ToLower() &&
-                            e.Attributes().Where((a) => a.Name.ToLower() == attribute.ToLower()
-                                && a.Value.ToLower() == value.ToLower()).FirstOrDefault() != null).FirstOrDefault();
+                        var pieces = parts[i].Split(' ');
+                        var att = pieces[1].Split('=');
+                        att[1] = att[1].Replace("\"", "");
+                        element =
+                            (from elem in element.Elements(pieces[0])
+                             where elem.Attribute(att[0]).Value == att[1]
+                             select elem).FirstOrDefault();
                     }
                     else
                     {
-                        name = parts[i];
-                        element = element.Elements().Where((e) => e.Name.ToLower() == name.ToLower()).FirstOrDefault();
+                        element = element.Element(parts[i]);
+                    }
+                    if (element == null)
+                    {
+                        Debug.PrintLine("Unable to find element for path: " + path);
+                        return false;
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Debug.PrintLine("Error finding element when loading xml file: " + FileName);
-                Debug.PrintLine(ex.Message);
-                return false;
-            }
-
-            if (element == null)
-            {
-                //Debug.PrintLine("Couldn't find value for the path: " + path);
-                return false;
-            }
-
-            try
-            {
-                //Debug.PrintLine("Finding a value. Element " + element.Name + " has " + (element.HasAttributes ? element.Attributes().Count() : 0) + " attributes.");
-                //Debug.PrintLine("Finding a value. Element " + element.Name + " has " + (element.HasElements ? element.Elements().Count() : 0) + " elements.");
 
                 if (isElement)
                 {
                     outValue = element.Value;
-                    Debug.PrintLine("Set value to: " + outValue);
+                }
+                else if (element.HasAttributes && element.Attributes(parts[parts.Length - 1]).Count() > 0)
+                {
+                    outValue =
+                        (from att in element.Attributes(parts[parts.Length - 1]) select att).FirstOrDefault().Value;
+                }
+                else if (element.HasElements && element.Elements(parts[parts.Length - 1]).Count() > 0)
+                {
+                    outValue =
+                        (from elem in element.Elements(parts[parts.Length - 1]) select elem).FirstOrDefault().Value;
                 }
                 else
                 {
-                    //Debug.PrintLine("Looking for part: " + parts[parts.Length - 1]);
-                    if (element.HasAttributes && element.Attributes().Where((a) => a.Name.ToLower() == parts[parts.Length - 1].ToLower()).Count() > 0)
-                    {
-                        outValue = element.Attributes().Where((a) => a.Name.ToLower() == parts[parts.Length - 1].ToLower()).FirstOrDefault().Value;
-                        Debug.PrintLine("Set value to: " + outValue);
-                    }
-                    else if (element.HasElements && element.Elements().Where((e) => e.Name.ToLower() == parts[parts.Length - 1].ToLower()).Count() > 0)
-                    {
-                        outValue = element.Elements().Where((e) => e.Name.ToLower() == parts[parts.Length - 1].ToLower()).FirstOrDefault().Value;
-                        Debug.PrintLine("Set value to: " + outValue);
-                    }
-                    else
-                    {
-                        //Debug.PrintLine("Couldn't find a value.");
-                        return false;
-                    }
+                    return false;
                 }
                 return true;
             }
             catch (Exception ex)
             {
-                Debug.PrintLine("Error parsing attribute value: " + path + " while loading configuration file: ");
+                Debug.PrintLine("Error finding element or attribute value when loading xml file: " + FileName);
                 Debug.PrintLine(ex.Message);
                 return false;
             }
-
         }
 
         /// <summary>
@@ -726,7 +694,7 @@ namespace ElegantXml.Xml
                 }
                 if (CrestronEnvironment.GetLocalTime() > markerTime)
                 {
-                    CrestronEnvironment.AllowOtherAppsToRun();
+                    CrestronEnvironment.Sleep(0);
                     markerTime = CrestronEnvironment.GetLocalTime().AddSeconds(20);
                 }
                 if (AnalogProcessors != null && !builder.WriteAnalogs(AnalogProcessors))
@@ -741,7 +709,7 @@ namespace ElegantXml.Xml
                 }
                 if (CrestronEnvironment.GetLocalTime() > markerTime)
                 {
-                    CrestronEnvironment.AllowOtherAppsToRun();
+                    CrestronEnvironment.Sleep(0);
                     markerTime = CrestronEnvironment.GetLocalTime().AddSeconds(20);
                 }
                 if (SignedAnalogProcessors != null && !builder.WriteSignedAnalogs(SignedAnalogProcessors))
@@ -756,7 +724,7 @@ namespace ElegantXml.Xml
                 }
                 if (CrestronEnvironment.GetLocalTime() > markerTime)
                 {
-                    CrestronEnvironment.AllowOtherAppsToRun();
+                    CrestronEnvironment.Sleep(0);
                     markerTime = CrestronEnvironment.GetLocalTime().AddSeconds(20);
                 }
                 if (SerialProcessors != null && !builder.WriteSerials(SerialProcessors))
@@ -773,16 +741,17 @@ namespace ElegantXml.Xml
                 {
                     if (builder.Save(FilePath))
                     {
-                        CrestronConsole.PrintLine(DateTime.Now.ToShortDateString() + "|" + DateTime.Now.ToLongTimeString() + "|XML file: " + FileName + " saved!");
+                        CrestronConsole.PrintLine("\n" + DateTime.Now.ToShortDateString() + "|" + DateTime.Now.ToLongTimeString() + "|XML file: " + FileName + " saved!");
                         SaveSuccess();
                         IsSaving(0);
                         IsSaveRequired(0);
                         XmlDoc = builder.Document;
+                        YieldProgress(65535);
                         return;
                     }
                     else
                     {
-                        CrestronConsole.PrintLine(DateTime.Now.ToShortDateString() + "|" + DateTime.Now.ToLongTimeString() + "|XML file: " + FileName + " not saved!");
+                        CrestronConsole.PrintLine("\n" + DateTime.Now.ToShortDateString() + "|" + DateTime.Now.ToLongTimeString() + "|XML file: " + FileName + " not saved!");
                         SaveFailure("Error while saving.");
                         IsSaving(0);
                         return;
@@ -794,6 +763,7 @@ namespace ElegantXml.Xml
                     Debug.PrintLine(ex.Message);
                     SaveFailure("Exception while saving.");
                     IsSaving(0);
+                    return;
                 }
             }
             catch (Exception ex)
@@ -802,6 +772,7 @@ namespace ElegantXml.Xml
                 Debug.PrintLine(ex.Message);
                 SaveFailure("Exception while saving.");
                 IsSaving(0);
+                return;
             }
             finally
             {
@@ -1022,5 +993,18 @@ namespace ElegantXml.Xml
             Debug.isDebugEnabled = false;
         }
 
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            _analogLock.Dispose();
+            _signedAnalogLock.Dispose();
+            _digitalLock.Dispose();
+            _serialLock.Dispose();
+            _fileLock.Dispose();
+        }
+
+        #endregion
     }
 }

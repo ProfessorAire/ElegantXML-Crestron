@@ -105,6 +105,17 @@ namespace ElegantXml.Xml
             }
         }
 
+        private static void SortXml(XElement node)
+        {
+            node.ReplaceNodes(node.Elements()
+                .OrderBy(x => x.Name, new ElementComparer())
+                .ThenBy(x => (x.HasAttributes ? x.Attributes().First().Value : ""), new ElementComparer()));
+            foreach (var child in node.Elements())
+            {
+                SortXml(child);
+            }
+        }
+
         /// <summary>
         /// Save the document to the path provided. Requires the document have been built first.
         /// </summary>
@@ -116,6 +127,11 @@ namespace ElegantXml.Xml
             {
                 try
                 {
+                    if (!Crestron.SimplSharp.CrestronIO.File.Exists(path))
+                    {
+                        SortXml(Document.Root);
+                    }
+
                     Document.Save(path);
                     return true;
                 }
@@ -309,153 +325,121 @@ namespace ElegantXml.Xml
         public bool WriteElement(IElement item)
         {
             progress += step;
-                var isElement = false;
-                if (item == null)
-                {
-                    Debug.PrintLine("Item is null! Cannot process null reference.");
-                    RaiseProgressUpdated(progress);
-                    return false;
-                }
-                Debug.PrintLine("Writing path: " + item.AttributePath + " with the value: " + item.GetAttributeValue());
-                var name = "";
 
-                var parts = item.AttributePath.Split(PathDelimiter);
-
-                //Debug.PrintLine("Using delimiter '" + PathDelimiter + "' there are " + parts.Length + " items in the parts array.");
-
-                var attribute = "";
-                var value = "";
-                string[] slice = null;
-                XElement element = null;
-
-                if (Document == null)
-                {
-                    Debug.PrintLine("Document is null! Cannot process saving XML Document.");
-                    RaiseProgressUpdated(progress);
-                    return false;
-                }
-                else if (Document.Root == null)
-                {
-                    Debug.PrintLine("Document.Root is null! Cannot process saving XML Document.");
-                    RaiseProgressUpdated(progress);
-                    return false;
-                }
-                var current = Document.Root;
-
-                if (parts.Last().Contains("=")) { isElement = true; }
-
-                for (var i = 0; i < (isElement ? parts.Length : parts.Length - 1); i++)
-                //for (var i = 0; i < parts.Length - 1; i++)
-                {
-                    element = null;
-                    name = "";
-                    attribute = "";
-                    value = "";
-                    if (parts[i].Contains(" "))
-                    {
-                        //Debug.PrintLine("Complex element.");
-                        //This is a complex element. It has an inline attribute to identify the element. (eg: Element id="Element1")
-                        try
-                        {
-                            slice = parts[i].Split(' ');
-                            name = slice[0].Replace(" ", "");
-                            value = slice[1].Split('=')[1].Replace("=", "").Replace("\"", "");
-                            attribute = slice[1].Split('=')[0].Replace("=", "").Replace(" ", "");
-
-                            if (current.Elements().Where((e) => e.Name.ToLower() == name.ToLower() &&
-                                e.Attributes().Where((a) => a.Name.ToLower() == attribute.ToLower() &&
-                                    a.Value.ToLower() == value.ToLower()).Count() == 1).Count() > 0)
-                            {
-                                current = current.Elements().Where((e) => e.Name.ToLower() == name.ToLower() &&
-                                e.Attributes().Where((a) => a.Name.ToLower() == attribute.ToLower() &&
-                                    a.Value.ToLower() == value.ToLower()).Count() == 1).First();
-                                continue;
-                            }
-
-                            if (element == null)
-                            {
-                                element = new XElement(name);
-                                element.Add(new XAttribute(attribute, value));
-                            }
-                            //Debug.PrintLine("Adding element: " + element.Name);
-                            current.Add(element);
-                            current = element;
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.PrintLine("Exception occurred while writing complex element to XML Document in memory.");
-                            Debug.PrintLine(ex.Message);
-                            RaiseProgressUpdated(progress);
-                            return false;
-                        }
-                    }
-                    else
-                    {
-                        //Debug.PrintLine("Simple Element.");
-                        //This should be a simple element. It has no line attribute to identify the element. (eg: Element)
-                        try
-                        {
-                            name = parts[i];
-
-                            if (current.Elements().Where((e) => e.Name.ToLower() == name.ToLower()).Count() > 0)
-                            {
-                                current = current.Elements().Where((e) => e.Name.ToLower() == name.ToLower()).First();
-                                //Debug.PrintLine("Found existing Simple Element.");
-                                continue;
-                            }
-
-                            if (element == null)
-                            {
-                                //Debug.PrintLine("Creating new element with the name: " + name);
-                                element = new XElement(name);
-                            }
-                            //Debug.PrintLine("Adding element: " + element.Name);
-                            current.Add(element);
-                            current = element;
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.PrintLine("Exception occurred while writing simple element to XML Document in memory.");
-                            Debug.PrintLine(ex.Message);
-                            RaiseProgressUpdated(progress);
-                            return false;
-                        }
-                    }
-                }
-
-                if (parts.Last() == "" || parts.Last() == string.Empty) { isElement = true; }
-
-                try
-                {
-                    if (isElement)
-                    {
-                        current.Value = item.GetAttributeValue();
-                        //Debug.PrintLine("Item is an element " + current.Name + " with the value " + current.Value + ".");
-                    }
-                    else
-                    {
-                        attribute = parts.Last().Replace(" ", "");
-                        if (current != null && current.HasAttributes && current.Attributes(attribute).Count() > 0)
-                        {
-                            current.Attribute(attribute).Value = item.GetAttributeValue();
-                        }
-                        else
-                        {
-                            current.Add(new XAttribute(attribute, item.GetAttributeValue()));
-                            //Debug.PrintLine("Item is an attribute " + attribute + " with the value " + item.GetAttributeValue());
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.PrintLine("Exception occurred while adding final attribute to XML element.");
-                    Debug.PrintLine(ex.Message);
-                    RaiseProgressUpdated(progress);
-                    return false;
-                }
+            if (item == null)
+            {
+                Debug.PrintLine("Item is null! Cannot process null reference.");
                 RaiseProgressUpdated(progress);
-                return true;
+                return false;
+            }
+            if (Document == null)
+            {
+                Debug.PrintLine("Document is null! Cannot process saving XML Document.");
+                RaiseProgressUpdated(progress);
+                return false;
+            }
+            else if (Document.Root == null)
+            {
+                Debug.PrintLine("Document.Root is null! Cannot process saving XML Document.");
+                RaiseProgressUpdated(progress);
+                return false;
+            }
+
+            Debug.PrintLine("Writing path: " + item.AttributePath + " with the value: " + item.GetAttributeValue());
+
+            var parts = item.AttributePath.Split(PathDelimiter);
+            XElement newElement = null;
+            var currentElement = Document.Root;
+            var isElement = parts.Last().Contains("=");
+
+            for (var i = 0; i < (isElement ? parts.Length : parts.Length - 1); i++)
+            {
+                if (parts[i].Contains(" "))
+                {
+                    try
+                    {
+                        var pieces = parts[i].Split(' ');
+                        var att = pieces[1].Split('=');
+                        att[1] = att[1].Replace("\"", "");
+                        var nextElement =
+                            (from elem in currentElement.Elements(pieces[0])
+                             where elem.Attribute(att[0]).Value == att[1]
+                             select elem).FirstOrDefault();
+
+                        if (nextElement != null)
+                        {
+                            currentElement = nextElement;
+                            continue;
+                        }
+
+                        newElement = new XElement(pieces[0]);
+                        newElement.Add(new XAttribute(att[0], att[1]));
+                        currentElement.Add(newElement);
+                        currentElement = newElement;
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.PrintLine("Exception occurred while writing complex element to XML Document in memory.");
+                        Debug.PrintLine(ex.Message);
+                        RaiseProgressUpdated(progress);
+                        return false;
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        var nextElement = currentElement.Element(parts[i]);
+                        if (nextElement != null)
+                        {
+                            currentElement = nextElement;
+                            continue;
+                        }
+
+                        newElement = new XElement(parts[i]);
+                        currentElement.Add(newElement);
+                        currentElement = newElement;
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.PrintLine("Exception occurred while writing simple element to XML Document in memory.");
+                        Debug.PrintLine(ex.Message);
+                        RaiseProgressUpdated(progress);
+                        return false;
+                    }
+                }
+            }
+
+            if (parts.Last() == "" ||
+                parts.Last() == string.Empty)
+            {
+                isElement = true;
+            }
+
+            try
+            {
+                if (isElement)
+                {
+                    currentElement.Value = item.GetAttributeValue();
+                }
+                else
+                {
+                    currentElement.SetAttributeValue(parts.Last(), item.GetAttributeValue());
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.PrintLine("Exception occurred while adding final attribute to XML element.");
+                Debug.PrintLine(ex.Message);
+                RaiseProgressUpdated(progress);
+                return false;
+            }
+
+            RaiseProgressUpdated(progress);
+            return true;
         }
+
 
     }
 }
