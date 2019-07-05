@@ -64,14 +64,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SimplBool.cs" />
     <Compile Include="Xml\AnalogElement.cs" />
     <Compile Include="Xml\AnalogProcessor.cs" />
     <Compile Include="Xml\Debug.cs" />
     <Compile Include="Xml\DigitalElement.cs">
     </Compile>
     <Compile Include="Xml\DigitalProcessor.cs" />
+    <Compile Include="Xml\ElementComparer.cs" />
     <Compile Include="Xml\IElement.cs" />
     <Compile Include="Xml\ProcessorBase.cs" />
+    <Compile Include="Xml\ProgressEventArgs.cs" />
     <Compile Include="Xml\SerialElement.cs" />
     <Compile Include="Xml\SerialProcessor.cs" />
     <Compile Include="Xml\SignedAnalogElement.cs" />
@@ -86,7 +89,9 @@
     <PostBuildEvent>rem  S# preparation will execute after these operations
 rem Build twice to get the correct clz file copied to the Simpl+ folder for building.
 
-copy "$(TargetDir)ElegantXml.clz" "$(ProjectDir)..\Simpl+\ElegantXml.clz" /y
+rem copy "$(TargetDir)ElegantXml.clz" "$(ProjectDir)..\Simpl+\ElegantXml.clz" /y
+rem copy "$(TargetDir)ElegantXml.dll" "$(TargetDir)ElegantXml_v1.2.dll" /y
+rem "$(TargetDir)ElegantXml.dll"
 exit 0</PostBuildEvent>
   </PropertyGroup>
 </Project>

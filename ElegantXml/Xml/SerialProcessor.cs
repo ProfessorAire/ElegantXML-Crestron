@@ -19,12 +19,6 @@ namespace ElegantXml.Xml
         /// </summary>
         public ReportValueChangeDelegate ReportValueChange { get; set; }
 
-        public delegate void ReportIsInitializedDelegate(ushort state);
-        /// <summary>
-        /// Reports that the class is initialized back to the Simpl+ module.
-        /// </summary>
-        public ReportIsInitializedDelegate ReportIsInitialized { get; set; }
-
         /// <summary>
         /// Used by Simpl+.
         /// </summary>
@@ -32,6 +26,37 @@ namespace ElegantXml.Xml
             : base()
         {
             Elements = new List<SerialElement>();
+        }
+
+        public ushort Initialize(ushort managerID)
+        {
+            if (IsInitialized) { return 1; }
+            try
+            {
+                if (Manager.AddProcessorToManager(managerID, this))
+                {
+                    defaultValueDelimiter = Manager.GetManagerDefaultValueDelimiter(managerID);
+                    ManagerId = managerID;
+                    IsInitialized = true;
+                }
+                else
+                {
+                    Debug.PrintLine("Couldn't add Serial Processor to manager, returning 0.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.PrintLine("Exception encountered while initializing Processor.");
+                Debug.PrintLine(ex.ToString());
+                return 0;
+            }
+            if (IsInitialized)
+            {
+                ReportIsInitialized(1);
+                CrestronEnvironment.AllowOtherAppsToRun();
+                return 1;
+            }
+            return 0;
         }
 
         /// <summary>
@@ -44,17 +69,16 @@ namespace ElegantXml.Xml
         {
             try
             {
-                CMonitor.Enter(this);
                 var path = elementPath;
                 string defVal = "";
                 if (elementPath.Contains(DefaultValueDelimiter))
                 {
                     path = elementPath.Split(DefaultValueDelimiter)[0];
-                    Debug.PrintLine("Element " + elementID + "'s Path = " + path);
+                    //Debug.PrintLine("Element " + elementID + "'s Path = " + path);
                     try
                     {
                         defVal = elementPath.Split(DefaultValueDelimiter)[1];
-                        Debug.PrintLine("Element " + elementID + "'s DefaultValue = " + defVal);
+                        //Debug.PrintLine("Element " + elementID + "'s DefaultValue = " + defVal);
                     }
                     catch
                     {
@@ -69,18 +93,11 @@ namespace ElegantXml.Xml
                 var element = new SerialElement(elementID, path, defVal);
                 Elements.Add(element);
             }
-            finally
+            catch (Exception ex)
             {
-                CMonitor.Exit(this);
+                Debug.PrintLine("Exception encountered while adding Serial value.");
+                Debug.PrintLine(ex.Message);
             }
-        }
-
-        /// <summary>
-        /// Sorts the list of elements by their path.
-        /// </summary>
-        public void Sort()
-        {
-            Elements = Elements.OrderBy((o) => o.AttributePath).ToList();
         }
 
         /// <summary>
@@ -105,7 +122,6 @@ namespace ElegantXml.Xml
                     Debug.PrintLine("No elements present to update Serial value on.");
                     return;
                 }
-                CMonitor.Enter(this);
                 var element = Elements.Where((e) => e.ID == elementID).First();
                 if (element == null)
                 {
@@ -114,35 +130,13 @@ namespace ElegantXml.Xml
                 }
                 element.AttributeValue = value;
                 ReportValueChange(elementID, element.AttributeValue);
-                manager.IsSaveRequired(1);
+                Manager.SetManagerUpdateRequired(ManagerId, true);
             }
-            finally
+            catch (Exception ex)
             {
-                CMonitor.Exit(this);
+                Debug.PrintLine("Exception encountered while updating Serial value.");
+                Debug.PrintLine(ex.Message);
             }
         }
-
-
-        /// <summary>
-        /// Initializes the processor.
-        /// </summary>
-        /// <param name="managerID">The ID of the manager module this class should associate with.</param>
-        public void Initialize(ushort managerID)
-        {
-            if (IsInitialized == true) { return; }
-            var man = Manager.GetManagerByID(managerID);
-            if (man != null)
-            {
-                man.AddSerial(this);
-            }
-            else
-            {
-                return;
-            }
-            IsInitialized = true;
-            ReportIsInitialized(1);
-        }
-
-
-    }
+   }
 }

@@ -32,6 +32,7 @@ STRING_PARAMETER _SKIP_,_SKIP_,XmlPath[MaxItems][512];
 #END_PARAMETER_PROPERTIES
 
 DigitalProcessor processor;
+integer initialized;
 
 //____Functions____
 callback function ProcessValueChange(integer id, integer value)
@@ -42,18 +43,18 @@ callback function ProcessValueChange(integer id, integer value)
 callback function ProcessIsInitialized(integer state)
 {
     IsInitialized = state;
+    initialized = state;
 }
 
 //____Events____
 PUSH InputValue
 {
     integer i;
-    if(processor.IsProcessorInitialized = 0) { return; }
+    if(initialized = 0) { return; }
     i = GetLastModifiedArrayIndex();
     processor.ToggleValue(i);
 }
 
-//____Start-Up Code____
 FUNCTION Main() {
     integer i;
     WaitForInitializationComplete();
@@ -64,6 +65,9 @@ FUNCTION Main() {
     RegisterDelegate(processor, ReportValueChange, ProcessValueChange);
     RegisterDelegate(processor, ReportIsInitialized, ProcessIsInitialized);
     
+    i = random(10, 100);
+    delay(i);
+    
     for(i = 1 to MaxItems)
     {
         if(IsSignalDefined(OutputValue[i]) && XmlPath[i] <> "")
@@ -71,6 +75,8 @@ FUNCTION Main() {
              processor.AddValue(i, XmlPath[i], InputValue[i]);
         }
     }   
-    processor.Sort();
-    processor.Initialize(ManagerID);
+    while(processor.Initialize(ManagerID) = 0)
+    {
+    	Delay(100);
+    }
 }

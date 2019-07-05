@@ -11,19 +11,12 @@ namespace ElegantXml.Xml
     /// </summary>
     public class ProcessorBase
     {
-
+        internal char defaultValueDelimiter = '|';
         internal char DefaultValueDelimiter
         {
             get
             {
-                if (manager != null)
-                {
-                    return manager.DefaultValueDelimiter;
-                }
-                else
-                {
-                    return '|';
-                }
+                return defaultValueDelimiter;
             }
         }
 
@@ -35,10 +28,13 @@ namespace ElegantXml.Xml
 
         public ushort IsProcessorInitialized { get { return IsInitialized ? (ushort)1 : (ushort)0; } }
 
+        public delegate void ReportIsInitializedDelegate(ushort state);
         /// <summary>
-        /// The Manager this processor is associated with.
+        /// Reports that the class is initialized back to the Simpl+ module.
         /// </summary>
-        internal Manager manager = null;
+        public ReportIsInitializedDelegate ReportIsInitialized { get; set; }
+
+        public ushort ManagerId { get; set; }
 
         /// <summary>
         /// Returns 1 if the manager associated with this processor is ready. This means this class can start initializing.
@@ -47,13 +43,10 @@ namespace ElegantXml.Xml
         /// <returns>1 if true, 0 if false.</returns>
         public ushort IsManagerReady(ushort id)
         {
-            var man = Manager.GetManagerByID(id);
-            if (man != null)
-            {
-                manager = man;
-                return 1;
-            }
-            return 0;
+            if (Manager.GetManagerIsReady(id) == false) { return 0; }
+            return 1;
         }
+
+
     }
 }

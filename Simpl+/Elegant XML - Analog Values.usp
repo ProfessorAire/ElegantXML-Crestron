@@ -19,7 +19,8 @@
 #Help_End
 
 //____Inputs/Outputs
-ANALOG_INPUT _SKIP_,_SKIP_,_SKIP_,InputValue[MaxItems];
+DIGITAL_INPUT _SKIP_,_SKIP_,_SKIP_;
+ANALOG_INPUT InputValue[MaxItems];
 DIGITAL_OUTPUT _SKIP_, IsInitialized;
 ANALOG_OUTPUT _SKIP_,OutputValue[MaxItems];
 INTEGER_PARAMETER ManagerID;
@@ -33,6 +34,7 @@ STRING_PARAMETER _SKIP_,_SKIP_,XmlPath[MaxItems][512];
 #END_PARAMETER_PROPERTIES
 
 AnalogProcessor processor;
+integer initialized;
 
 //____Functions____
 callback function ProcessValueChange(integer id, integer value)
@@ -43,6 +45,7 @@ callback function ProcessValueChange(integer id, integer value)
 callback function ProcessIsInitialized(integer state)
 {
     IsInitialized = state;
+    initialized = state;
 }
 
 //____Events____
@@ -50,7 +53,7 @@ callback function ProcessIsInitialized(integer state)
 CHANGE InputValue
 {
     integer i;
-    if(processor.IsProcessorInitialized = 0) { return; }
+    if(initialized = 0) { return; }
     i = GetLastModifiedArrayIndex();
     processor.UpdateValue(i, InputValue[i]);
 }
@@ -63,6 +66,10 @@ FUNCTION Main() {
     {
          Delay(100);
     }
+    
+    i = random(10, 100);
+    delay(i);
+    
     RegisterDelegate(processor, ReportValueChange, ProcessValueChange);
     RegisterDelegate(processor, ReportIsInitialized, ProcessIsInitialized);
  
@@ -70,11 +77,11 @@ FUNCTION Main() {
     {
         if(IsSignalDefined(OutputValue[i]) && XmlPath[i] <> "")
         {
-             processor.AddValue(i, XmlPath[i], InputValue[i]);
+	        processor.AddValue(i, XmlPath[i], InputValue[i]);
         }
     }   
-    
-    processor.Sort();
-    
-    processor.Initialize(ManagerID);
+    while(processor.Initialize(ManagerID) = 0)
+    {
+    	Delay(100);
+    }
 }
