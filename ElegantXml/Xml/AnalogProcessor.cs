@@ -125,7 +125,6 @@ namespace ElegantXml.Xml
                     Debug.PrintLine("No elements present to update Analog value on.");
                     return;
                 }
-                CMonitor.Enter(this);
                 var element = Elements.Where((e) => e.ID == elementID).First();
                 if (element == null)
                 {
