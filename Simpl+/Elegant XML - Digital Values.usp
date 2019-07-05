@@ -19,7 +19,7 @@
 #Help_End
 
 //____Inputs/Outputs
-DIGITAL_INPUT _SKIP_,Initialize,_SKIP_,InputValue[MaxItems];
+DIGITAL_INPUT _SKIP_,_SKIP_,_SKIP_,InputValue[MaxItems];
 DIGITAL_OUTPUT _SKIP_,IsInitialized,_SKIP_,OutputValue[MaxItems];
 INTEGER_PARAMETER ManagerID;
 STRING_PARAMETER _SKIP_,_SKIP_,XmlPath[MaxItems][512];
@@ -55,9 +55,9 @@ PUSH InputValue
     processor.ToggleValue(i);
 }
 
-FUNCTION Init() {
+FUNCTION Main() {
     integer i;
-    //WaitForInitializationComplete();
+    WaitForInitializationComplete();
     while(processor.IsManagerReady(ManagerID) = 0)
     {
          Delay(100);
@@ -65,7 +65,7 @@ FUNCTION Init() {
     RegisterDelegate(processor, ReportValueChange, ProcessValueChange);
     RegisterDelegate(processor, ReportIsInitialized, ProcessIsInitialized);
     
-    i = random(10, 500);
+    i = random(10, 100);
     delay(i);
     
     for(i = 1 to MaxItems)
@@ -79,9 +79,4 @@ FUNCTION Init() {
     {
     	Delay(100);
     }
-}
-
-PUSH Initialize
-{
-	Init();
 }

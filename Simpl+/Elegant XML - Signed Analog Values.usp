@@ -20,7 +20,7 @@
 #Help_End
 
 //____Inputs/Outputs
-DIGITAL_INPUT _SKIP_,Initialize,_SKIP_;
+DIGITAL_INPUT _SKIP_,_SKIP_,_SKIP_;
 ANALOG_INPUT InputValue[MaxItems];
 DIGITAL_OUTPUT _SKIP_, IsInitialized;
 ANALOG_OUTPUT _SKIP_,OutputValue[MaxItems];
@@ -62,15 +62,15 @@ CHANGE InputValue
 //EVENT
 
 //____Start-Up Code____
-FUNCTION Init() {
+FUNCTION Main() {
     integer i;
-    //WaitForInitializationComplete();
+    WaitForInitializationComplete();
     while(processor.IsManagerReady(ManagerID) = 0)
     {
          Delay(100);
     }
     
-    i = random(10, 500);
+    i = random(10, 100);
     delay(i);
     
     RegisterDelegate(processor, ReportValueChange, ProcessValueChange);
@@ -86,9 +86,4 @@ FUNCTION Init() {
     {
     	Delay(100);
     }
-}
-     
-PUSH Initialize
-{
-	Init();
 }
