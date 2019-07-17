@@ -9,16 +9,12 @@ namespace ElegantXml.Xml
     /// <summary>
     /// Base class for all element processors.
     /// </summary>
-    public class ProcessorBase
+    public abstract class ProcessorBase
     {
-        internal char defaultValueDelimiter = '|';
-        internal char DefaultValueDelimiter
-        {
-            get
-            {
-                return defaultValueDelimiter;
-            }
-        }
+        /// <summary>
+        /// Gets/Sets the Default Value Delimiter for this processor.
+        /// </summary>
+        public char DefaultValueDelimiter { get; set; }
 
         private bool isInitialized = false;
         /// <summary>
@@ -44,6 +40,7 @@ namespace ElegantXml.Xml
         public ushort IsManagerReady(ushort id)
         {
             if (Manager.GetManagerIsReady(id) == false) { return 0; }
+            DefaultValueDelimiter = Manager.GetManagerDefaultValueDelimiter(id);
             return 1;
         }
 
