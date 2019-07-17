@@ -114,6 +114,7 @@ namespace ElegantXml.Xml
         public void SetDefaultValueDelimiter(string DelimiterCharacter)
         {
             DefaultValueDelimiter = DelimiterCharacter[0];
+            Debug.PrintLine("Setting default value delimiter to: " + DefaultValueDelimiter);
         }
 
         private double previousProgress = 0;
@@ -825,7 +826,7 @@ namespace ElegantXml.Xml
 
         public static char GetManagerDefaultValueDelimiter(ushort id)
         {
-            if (Managers == null || Managers.Keys.Contains(id) == false) { return '|'; }
+            if (Managers == null || Managers.Keys.Contains(id) == false) { Debug.PrintLine("Returned default | value delimiter."); return '|'; }
             if (Managers.Keys.Contains(id) && Managers[id] != null)
             {
                 return Managers[id].DefaultValueDelimiter;

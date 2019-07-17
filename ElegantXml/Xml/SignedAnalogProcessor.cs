@@ -35,7 +35,6 @@ namespace ElegantXml.Xml
             {
                 if (Manager.AddProcessorToManager(managerID, this))
                 {
-                    defaultValueDelimiter = Manager.GetManagerDefaultValueDelimiter(managerID);
                     ManagerId = managerID;
                     IsInitialized = true;
                 }
@@ -53,7 +52,6 @@ namespace ElegantXml.Xml
             if (IsInitialized)
             {
                 ReportIsInitialized(1);
-                CrestronEnvironment.AllowOtherAppsToRun();
                 return 1;
             }
             return 0;
