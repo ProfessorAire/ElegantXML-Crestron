@@ -174,9 +174,12 @@ namespace ElegantXml.Xml
                     Debug.PrintLine("Couldn't find element to update Digital value on.");
                     return;
                 }
-                element.AttributeValue = value;
-                ReportValueChange(elementID, element.AttributeValue == true ? (ushort)1 : (ushort)0);
-                Manager.SetManagerUpdateRequired(ManagerId, true);
+                if (element.AttributeValue != value)
+                {
+                    element.AttributeValue = value;
+                    ReportValueChange(elementID, element.AttributeValue == true ? (ushort)1 : (ushort)0);
+                    Manager.SetManagerUpdateRequired(ManagerId, true);
+                }
             }
             catch (Exception ex)
             {

@@ -32,6 +32,18 @@ namespace ElegantXml.Xml
         /// A list of the SerialProcessors associated with this manager.
         /// </summary>
         private List<SerialProcessor> SerialProcessors { get; set; }
+        /// <summary>
+        /// A list of the SerialPropertyInterlocks associated with this manager.
+        /// </summary>
+        private List<SerialPropertyInterlock> SerialInterlocks { get; set; }
+        /// <summary>
+        /// A list of the AnalogPropertyInterlocks associated with this manager.
+        /// </summary>
+        private List<AnalogPropertyInterlock> AnalogInterlocks { get; set; }
+        /// <summary>
+        /// A list of the SignedAnalogPropertyInterlocks associated with this manager.
+        /// </summary>
+        private List<SignedAnalogPropertyInterlock> SignedAnalogInterlocks { get; set; }
 
         /// <summary>
         /// Private XDocument used to perform operations on the XML file.
@@ -144,6 +156,9 @@ namespace ElegantXml.Xml
         private CCriticalSection _digitalLock = new CCriticalSection();
         private CCriticalSection _serialLock = new CCriticalSection();
         private CCriticalSection _signedAnalogLock = new CCriticalSection();
+        private CCriticalSection _serialInterlockLock = new CCriticalSection();
+        private CCriticalSection _analogInterlockLock = new CCriticalSection();
+        private CCriticalSection _signedAnalogInterlockLock = new CCriticalSection();
 
         /// <summary>
         /// Returns string values to the Simpl+ module.
@@ -371,6 +386,120 @@ namespace ElegantXml.Xml
         }
 
         /// <summary>
+        /// Adds a Serial Property Interlock to this manager instance.
+        /// </summary>
+        /// <param name="proc">The processor to add.</param>
+        internal bool AddSerialPropertyInterlock(SerialPropertyInterlock proc)
+        {
+            if (proc == null)
+            {
+                Debug.PrintLine("Null processor, couldn't add to manager.");
+                return false;
+            }
+            try
+            {
+                if (SerialInterlocks == null)
+                {
+                    if (_serialInterlockLock.TryEnter())
+                    {
+                        try
+                        {
+                            if (SerialInterlocks == null)
+                            {
+                                SerialInterlocks = new List<SerialPropertyInterlock>();
+                            }
+                        }
+                        finally { _serialInterlockLock.Leave(); }
+                    }
+                }
+                SerialInterlocks.Add(proc);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.PrintLine("Exception encountered while adding Serial Property Interlock to Manager.");
+                Debug.PrintLine(ex.Message);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Adds an Analog Property Interlock to this manager instance.
+        /// </summary>
+        /// <param name="proc">The processor to add.</param>
+        internal bool AddAnalogPropertyInterlock(AnalogPropertyInterlock proc)
+        {
+            if (proc == null)
+            {
+                Debug.PrintLine("Null processor, couldn't add to manager.");
+                return false;
+            }
+            try
+            {
+                if (AnalogInterlocks == null)
+                {
+                    if (_analogInterlockLock.TryEnter())
+                    {
+                        try
+                        {
+                            if (AnalogInterlocks == null)
+                            {
+                                AnalogInterlocks = new List<AnalogPropertyInterlock>();
+                            }
+                        }
+                        finally { _analogInterlockLock.Leave(); }
+                    }
+                }
+                AnalogInterlocks.Add(proc);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.PrintLine("Exception encountered while adding Analog Property Interlock to Manager.");
+                Debug.PrintLine(ex.Message);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Adds a Signed Analog Property Interlock to this manager instance.
+        /// </summary>
+        /// <param name="proc">The processor to add.</param>
+        internal bool AddSignedAnalogPropertyInterlock(SignedAnalogPropertyInterlock proc)
+        {
+            if (proc == null)
+            {
+                Debug.PrintLine("Null processor, couldn't add to manager.");
+                return false;
+            }
+            try
+            {
+                if (SignedAnalogInterlocks == null)
+                {
+                    if (_signedAnalogInterlockLock.TryEnter())
+                    {
+                        try
+                        {
+                            if (SignedAnalogInterlocks == null)
+                            {
+                                SignedAnalogInterlocks = new List<SignedAnalogPropertyInterlock>();
+                            }
+                        }
+                        finally { _signedAnalogInterlockLock.Leave(); }
+                    }
+                }
+                SignedAnalogInterlocks.Add(proc);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.PrintLine("Exception encountered while adding Analog Property Interlock to Manager.");
+                Debug.PrintLine(ex.Message);
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Loads data from the file and overwrites any existing values.
         /// </summary>
         public void LoadFile()
@@ -386,6 +515,9 @@ namespace ElegantXml.Xml
                 _signedAnalogLock.Enter();
                 _digitalLock.Enter();
                 _serialLock.Enter();
+                _serialInterlockLock.Enter();
+                _analogInterlockLock.Enter();
+                _signedAnalogInterlockLock.Enter();
                 _fileLock.Enter();
                 XDocument doc = null;
                 try
@@ -559,6 +691,57 @@ namespace ElegantXml.Xml
                         }
                     }
                 }
+                if (SerialInterlocks != null)
+                {
+                    Debug.PrintLine("Processing Serial Interlocks");
+                    for (var i = 0; i < SerialInterlocks.Count; i++)
+                    {
+                        if (isValidElement && TryFindValue(SerialInterlocks[i].Element.AttributePath, element, out value))
+                        {
+                            SerialInterlocks[i].SelectValue(value);
+                        }
+                        else
+                        {
+                            SerialInterlocks[i].SelectValue(SerialInterlocks[i].Element.DefaultValue);
+                        }
+                        current += step;
+                        YieldProgress(current);
+                    }
+                }
+                if (AnalogInterlocks != null)
+                {
+                    Debug.PrintLine("Processing Analog Interlocks");
+                    for (var i = 0; i < AnalogInterlocks.Count; i++)
+                    {
+                        if (isValidElement && TryFindValue(AnalogInterlocks[i].Element.AttributePath, element, out value))
+                        {
+                            AnalogInterlocks[i].SelectValueByString(value);
+                        }
+                        else
+                        {
+                            AnalogInterlocks[i].SelectValue(AnalogInterlocks[i].Element.DefaultValue);
+                        }
+                        current += step;
+                        YieldProgress(current);
+                    }
+                }
+                if (SignedAnalogInterlocks != null)
+                {
+                    Debug.PrintLine("Processing SignedAnalog Interlocks");
+                    for (var i = 0; i < SignedAnalogInterlocks.Count; i++)
+                    {
+                        if (isValidElement && TryFindValue(SignedAnalogInterlocks[i].Element.AttributePath, element, out value))
+                        {
+                            SignedAnalogInterlocks[i].SelectValueByString(value);
+                        }
+                        else
+                        {
+                            SignedAnalogInterlocks[i].SelectValue(SignedAnalogInterlocks[i].Element.DefaultValue);
+                        }
+                        current += step;
+                        YieldProgress(current);
+                    }
+                }
                 XmlDoc = doc;
             }
             finally
@@ -567,6 +750,9 @@ namespace ElegantXml.Xml
                 _signedAnalogLock.Leave();
                 _digitalLock.Leave();
                 _serialLock.Leave();
+                _serialInterlockLock.Leave();
+                _analogInterlockLock.Leave();
+                _signedAnalogInterlockLock.Leave();
                 _fileLock.Leave();
             }
             CrestronConsole.PrintLine("\n" + DateTime.Now.ToShortDateString() + "|" + DateTime.Now.ToLongTimeString() + "|Finished loading xml file:" + FileName);
@@ -666,6 +852,7 @@ namespace ElegantXml.Xml
                 _signedAnalogLock.Enter();
                 _digitalLock.Enter();
                 _serialLock.Enter();
+                _serialInterlockLock.Enter();
                 _fileLock.Enter();
                 XmlBuilder builder = null;
                 if (XmlDoc != null)
@@ -734,6 +921,36 @@ namespace ElegantXml.Xml
                     {
                         SaveFailure("Unable to write all Serial elements.");
                         Debug.PrintLine("Unable to write all Serial elements.");
+                        IsSaving(0);
+                        return;
+                    }
+                }
+                if (SerialInterlocks != null && !builder.WriteSerialPropertyInterlocks(SerialInterlocks))
+                {
+                    if (!builder.WriteSerialPropertyInterlocks(SerialInterlocks))
+                    {
+                        SaveFailure("Unable to write all Serial Property Interlock elements.");
+                        Debug.PrintLine("Unable to write all Serial Property Interlock elements.");
+                        IsSaving(0);
+                        return;
+                    }
+                }
+                if (AnalogInterlocks != null && !builder.WriteAnalogPropertyInterlocks(AnalogInterlocks))
+                {
+                    if (!builder.WriteAnalogPropertyInterlocks(AnalogInterlocks))
+                    {
+                        SaveFailure("Unable to write all Analog Property Interlock elements.");
+                        Debug.PrintLine("Unable to write all Analog Property Interlock elements.");
+                        IsSaving(0);
+                        return;
+                    }
+                }
+                if (SignedAnalogInterlocks != null && !builder.WriteSignedAnalogPropertyInterlocks(SignedAnalogInterlocks))
+                {
+                    if (!builder.WriteSignedAnalogPropertyInterlocks(SignedAnalogInterlocks))
+                    {
+                        SaveFailure("Unable to write all SignedAnalog Property Interlock elements.");
+                        Debug.PrintLine("Unable to write all SignedAnalog Property Interlock elements.");
                         IsSaving(0);
                         return;
                     }
@@ -886,7 +1103,7 @@ namespace ElegantXml.Xml
             }
             catch (Exception ex)
             {
-                Debug.PrintLine("Exception encountered while adding Analog processor to manager.");
+                Debug.PrintLine("Exception encountered while adding Signed Analog processor to manager.");
                 Debug.PrintLine(ex.Message);
                 return false;
             }
@@ -903,7 +1120,7 @@ namespace ElegantXml.Xml
             }
             catch (Exception ex)
             {
-                Debug.PrintLine("Exception encountered while adding Analog processor to manager.");
+                Debug.PrintLine("Exception encountered while adding Digital processor to manager.");
                 Debug.PrintLine(ex.Message);
                 return false;
             }
@@ -920,7 +1137,58 @@ namespace ElegantXml.Xml
             }
             catch (Exception ex)
             {
-                Debug.PrintLine("Exception encountered while adding Analog processor to manager.");
+                Debug.PrintLine("Exception encountered while adding Serial processor to manager.");
+                Debug.PrintLine(ex.Message);
+                return false;
+            }
+        }
+
+        public static bool AddProcessorToManager(ushort managerId, SerialPropertyInterlock interlock)
+        {
+            try
+            {
+                if(Managers == null || Managers.Keys.Contains(managerId) == false) { return false; }
+                var man = Managers[managerId];
+                if(man == null) { return false; }
+                return man.AddSerialPropertyInterlock(interlock);
+            }
+            catch (Exception ex)
+            {
+                Debug.PrintLine("Exception encountered while adding Serial Property Interlock to manager.");
+                Debug.PrintLine(ex.Message);
+                return false;
+            }
+        }
+
+        public static bool AddProcessorToManager(ushort managerId, AnalogPropertyInterlock interlock)
+        {
+            try
+            {
+                if (Managers == null || Managers.Keys.Contains(managerId) == false) { return false; }
+                var man = Managers[managerId];
+                if (man == null) { return false; }
+                return man.AddAnalogPropertyInterlock(interlock);
+            }
+            catch (Exception ex)
+            {
+                Debug.PrintLine("Exception encountered while adding Analog Property Interlock to manager.");
+                Debug.PrintLine(ex.Message);
+                return false;
+            }
+        }
+
+        public static bool AddProcessorToManager(ushort managerId, SignedAnalogPropertyInterlock interlock)
+        {
+            try
+            {
+                if (Managers == null || Managers.Keys.Contains(managerId) == false) { return false; }
+                var man = Managers[managerId];
+                if (man == null) { return false; }
+                return man.AddSignedAnalogPropertyInterlock(interlock);
+            }
+            catch (Exception ex)
+            {
+                Debug.PrintLine("Exception encountered while adding Signed Analog Property Interlock to manager.");
                 Debug.PrintLine(ex.Message);
                 return false;
             }

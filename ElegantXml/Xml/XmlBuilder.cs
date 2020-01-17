@@ -318,6 +318,78 @@ namespace ElegantXml.Xml
         }
 
         /// <summary>
+        /// Writes a list of SerialPropertyInterlocks to the XML Document in memory.
+        /// </summary>
+        /// <param name="items">The list of SerialPropertyInterlock items to write.</param>
+        /// <returns>True if successful, false if any item fails.</returns>
+        public bool WriteSerialPropertyInterlocks(List<SerialPropertyInterlock> items)
+        {
+            var status = true;
+            var markerTime = CrestronEnvironment.GetLocalTime().AddSeconds(20);
+            for (var i = 0; i < items.Count; i++)
+            {
+                if (CrestronEnvironment.GetLocalTime() > markerTime)
+                {
+                    CrestronEnvironment.AllowOtherAppsToRun();
+                    markerTime = CrestronEnvironment.GetLocalTime().AddSeconds(20);
+                }
+                if (WriteElement(items[i].Element) == false)
+                {
+                    status = false;
+                }
+            }
+            return status;
+        }
+
+        /// <summary>
+        /// Writes a list of AnalogPropertyInterlocks to the XML Document in memory.
+        /// </summary>
+        /// <param name="items">The list of AnalogPropertyInterlock items to write.</param>
+        /// <returns>True if successful, false if any item fails.</returns>
+        public bool WriteAnalogPropertyInterlocks(List<AnalogPropertyInterlock> items)
+        {
+            var status = true;
+            var markerTime = CrestronEnvironment.GetLocalTime().AddSeconds(20);
+            for (var i = 0; i < items.Count; i++)
+            {
+                if (CrestronEnvironment.GetLocalTime() > markerTime)
+                {
+                    CrestronEnvironment.AllowOtherAppsToRun();
+                    markerTime = CrestronEnvironment.GetLocalTime().AddSeconds(20);
+                }
+                if (WriteElement(items[i].Element) == false)
+                {
+                    status = false;
+                }
+            }
+            return status;
+        }
+
+        /// <summary>
+        /// Writes a list of SignedAnalogPropertyInterlocks to the XML Document in memory.
+        /// </summary>
+        /// <param name="items">The list of SignedAnalogPropertyInterlock items to write.</param>
+        /// <returns>True if successful, false if any item fails.</returns>
+        public bool WriteSignedAnalogPropertyInterlocks(List<SignedAnalogPropertyInterlock> items)
+        {
+            var status = true;
+            var markerTime = CrestronEnvironment.GetLocalTime().AddSeconds(20);
+            for (var i = 0; i < items.Count; i++)
+            {
+                if (CrestronEnvironment.GetLocalTime() > markerTime)
+                {
+                    CrestronEnvironment.AllowOtherAppsToRun();
+                    markerTime = CrestronEnvironment.GetLocalTime().AddSeconds(20);
+                }
+                if (WriteElement(items[i].Element) == false)
+                {
+                    status = false;
+                }
+            }
+            return status;
+        }
+
+        /// <summary>
         /// Writes an element to the XML document in memory.
         /// </summary>
         /// <param name="item">An IElement to write to the document.</param>

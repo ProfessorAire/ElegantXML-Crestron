@@ -339,6 +339,7 @@ ASALocalRun/
 /Samples/*.sm2
 /Samples/*.ASV
 /Samples/SplsWork
+/Samples/*/SplsWork
 /Samples/*.vta
 /Samples/*.c3prj
 /Samples/*.hash
@@ -346,6 +347,8 @@ ASALocalRun/
 /Samples/*.sig
 /Samples/*.lpz
 /Samples/*.vtz
+/Samples/*.clz
+/Samples/v*/
 /Simpl+/*.clz
 /Simpl+/*.dll
 *.deploy.bat

@@ -19,9 +19,9 @@
 #Help_End
 
 //____Inputs/Outputs
-DIGITAL_INPUT _SKIP_,_SKIP_,_SKIP_,InputValue[MaxItems];
-DIGITAL_OUTPUT _SKIP_,IsInitialized,_SKIP_,OutputValue[MaxItems];
-INTEGER_PARAMETER ManagerID;
+DIGITAL_INPUT _SKIP_,_SKIP_,_SKIP_,_SKIP_,InputValue[MaxItems];
+DIGITAL_OUTPUT _SKIP_,_SKIP_,IsInitialized,_SKIP_,OutputValue[MaxItems];
+INTEGER_PARAMETER ManagerID, InputMethod;
 STRING_PARAMETER _SKIP_,_SKIP_,XmlPath[MaxItems][512];
 
 #BEGIN_PARAMETER_PROPERTIES ManagerID
@@ -29,6 +29,12 @@ STRING_PARAMETER _SKIP_,_SKIP_,XmlPath[MaxItems][512];
     propDefaultUnit = unitDecimal;
     propDefaultValue = 1d;    
     propList = {1d, "Processor 1"}, {2d, "Processor 2"}, {3d, "Processor 3"}, {4d, "Processor 4"}, {5d, "Processor 5"};
+#END_PARAMETER_PROPERTIES
+#BEGIN_PARAMETER_PROPERTIES InputMethod
+	propValidUnits = unitDecimal;
+	propDefaultUnit = unitDecimal;
+	propDefaultValue = 1d;
+	propList = {1d, "Toggle"}, {2d, "Latch"};
 #END_PARAMETER_PROPERTIES
 
 DigitalProcessor processor;
@@ -52,7 +58,25 @@ PUSH InputValue
     integer i;
     if(initialized = 0) { return; }
     i = GetLastModifiedArrayIndex();
-    processor.ToggleValue(i);
+    if(InputMethod = 1)
+    {
+    	processor.ToggleValue(i);
+    }
+    else
+    {
+    	processor.UpdateValue(i, "true");
+    }
+}
+
+RELEASE InputValue
+{
+	integer i;
+	if(initialized = 0 || InputMethod = 1) { return; }
+	i = GetLastModifiedArrayIndex();
+	if(InputMethod = 2)
+	{
+		processor.UpdateValue(i, "false");
+	}
 }
 
 FUNCTION Main() {

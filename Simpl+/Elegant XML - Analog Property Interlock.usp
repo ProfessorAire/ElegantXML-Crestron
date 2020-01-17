@@ -1,0 +1,103 @@
+//Christopher McNeely
+//Elegant Video and Soundworks
+
+//____Compiler Directives____
+
+#SYMBOL_NAME "Elegant XML - Analog Property Interlock"
+#ENABLE_STACK_CHECKING
+#DEFAULT_VOLATILE
+#CATEGORY "46" "Elegant Modules"
+#DEFINE_CONSTANT MaxItems 50
+#DIGITAL_EXPAND AllWithAny
+#HELP_PDF_FILE "Elegant XML - Analog Property Interlock.pdf"
+
+#INCLUDEPATH ""
+#USER_SIMPLSHARP_LIBRARY "ElegantXML"
+
+#Help_Begin
+
+#Help_End
+
+//____Inputs/Outputs
+DIGITAL_INPUT _SKIP_,_SKIP_,Clear,_SKIP_,Select[MaxItems];
+ANALOG_INPUT _SKIP_,SetValue;
+DIGITAL_OUTPUT _SKIP_,_SKIP_,IsInitialized,_SKIP_,IsSelected[MaxItems];
+ANALOG_OUTPUT _SKIP_,CurrentValue;
+INTEGER_PARAMETER ManagerID;
+STRING_PARAMETER XmlPath[512],_SKIP_,_SKIP_;
+INTEGER_PARAMETER PropertyValue[MaxItems];
+
+#BEGIN_PARAMETER_PROPERTIES ManagerID
+    propValidUnits = unitDecimal;
+    propDefaultUnit = unitDecimal;
+    propDefaultValue = 1d;    
+    propList = {1d, "Processor 1"}, {2d, "Processor 2"}, {3d, "Processor 3"}, {4d, "Processor 4"}, {5d, "Processor 5"};
+#END_PARAMETER_PROPERTIES
+
+AnalogPropertyInterlock processor;
+integer initialized;
+
+//____Functions____
+callback function ProcessValueChange(integer id, integer value)
+{
+	SetArray(IsSelected, 0);
+	if(id > 0 && id <= MaxItems)
+	{
+		IsSelected[id] = 1;
+	}
+	CurrentValue = value;
+}
+
+callback function ProcessIsInitialized(integer state)
+{
+    IsInitialized = state;
+    initialized = state;
+}
+
+//____Events____
+PUSH Select
+{
+    integer i;
+    if(initialized = 0) { return; }
+    i = GetLastModifiedArrayIndex();
+    processor.SelectValueByIndex(i);
+}
+
+CHANGE SetValue
+{
+	processor.SelectValue(SetValue);
+}
+
+FUNCTION Main() {
+    integer i,j;
+    WaitForInitializationComplete();
+    while(processor.IsManagerReady(ManagerID) = 0)
+    {
+         Delay(100);
+    }
+    RegisterDelegate(processor, ReportValueChange, ProcessValueChange);
+    RegisterDelegate(processor, ReportIsInitialized, ProcessIsInitialized);
+    
+    
+    i = random(10, 100);
+    delay(i);
+    
+    for(i = MaxItems to 1 Step -1)
+    {
+    	if(IsSignalDefined(Select[i]) = 1)
+    	{
+    		break;
+    	}
+    }
+    processor.SetSize(i);
+
+	for(j = 1 to i)
+	{
+		processor.AddPropertyValue(j, PropertyValue[j]);
+	}
+    
+    while(processor.Initialize(ManagerID, XmlPath) = 0)
+    {
+    	Delay(100);
+    }
+}

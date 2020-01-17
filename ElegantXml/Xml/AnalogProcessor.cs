@@ -129,9 +129,12 @@ namespace ElegantXml.Xml
                     Debug.PrintLine("Couldn't find element to update Analog value on.");
                     return;
                 }
-                element.AttributeValue = value;
-                ReportValueChange(elementID, element.AttributeValue);
-                Manager.SetManagerUpdateRequired(ManagerId, true);
+                if (element.AttributeValue != value)
+                {
+                    element.AttributeValue = value;
+                    ReportValueChange(elementID, element.AttributeValue);
+                    Manager.SetManagerUpdateRequired(ManagerId, true);
+                }
             }
             catch (Exception ex)
             {

@@ -127,9 +127,12 @@ namespace ElegantXml.Xml
                     Debug.PrintLine("Couldn't find element to update Serial value on.");
                     return;
                 }
-                element.AttributeValue = value;
-                ReportValueChange(elementID, element.AttributeValue);
-                Manager.SetManagerUpdateRequired(ManagerId, true);
+                if (element.AttributeValue != value)
+                {
+                    element.AttributeValue = value;
+                    ReportValueChange(elementID, element.AttributeValue);
+                    Manager.SetManagerUpdateRequired(ManagerId, true);
+                }
             }
             catch (Exception ex)
             {
