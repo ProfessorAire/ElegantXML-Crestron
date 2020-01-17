@@ -1,0 +1,88 @@
+//Christopher McNeely
+//Elegant Video and Soundworks
+
+//____Compiler Directives____
+
+#SYMBOL_NAME "Elegant XML - Digital Values"
+#ENABLE_STACK_CHECKING
+#DEFAULT_VOLATILE
+#CATEGORY "46" "Elegant Modules"
+#DEFINE_CONSTANT MaxItems 50
+#DIGITAL_EXPAND AllWithAny
+#HELP_PDF_FILE "Elegant XML - Digital Values.pdf"
+
+#INCLUDEPATH ""
+#USER_SIMPLSHARP_LIBRARY "ElegantXML"
+
+#Help_Begin
+
+#Help_End
+
+//____Inputs/Outputs
+DIGITAL_INPUT _SKIP_,_SKIP_,_SKIP_,InputValue[MaxItems];
+DIGITAL_OUTPUT _SKIP_,IsInitialized,_SKIP_,OutputValue[MaxItems];
+INTEGER_PARAMETER ManagerID;
+STRING_PARAMETER _SKIP_,XmlPath[512], PropertyValue[MaxItems][50];
+
+#BEGIN_PARAMETER_PROPERTIES ManagerID
+    propValidUnits = unitDecimal;
+    propDefaultUnit = unitDecimal;
+    propDefaultValue = 1d;    
+    propList = {1d, "Processor 1"}, {2d, "Processor 2"}, {3d, "Processor 3"}, {4d, "Processor 4"}, {5d, "Processor 5"};
+#END_PARAMETER_PROPERTIES
+
+SerialProcessor processor;
+integer initialized;
+
+//____Functions____
+callback function ProcessValueChange(integer id, string value)
+{
+	integer i;
+	for(i = 1 to MaxItems)
+	{
+		if(PropertyValue[i] = value)
+		{
+			OutputValue[i] = 1;
+		}
+		else
+		{
+			OutputValue[i] = 0;
+		}
+	}
+}
+
+callback function ProcessIsInitialized(integer state)
+{
+    IsInitialized = state;
+    initialized = state;
+}
+
+//____Events____
+PUSH InputValue
+{
+    integer i;
+    if(initialized = 0) { return; }
+    i = GetLastModifiedArrayIndex();
+    processor.UpdateValue(1, PropertyValue[i]);
+}
+
+FUNCTION Main() {
+    integer i;
+    WaitForInitializationComplete();
+    while(processor.IsManagerReady(ManagerID) = 0)
+    {
+         Delay(100);
+    }
+    RegisterDelegate(processor, ReportValueChange, ProcessValueChange);
+    RegisterDelegate(processor, ReportIsInitialized, ProcessIsInitialized);
+    
+    i = random(10, 100);
+    delay(i);
+    
+    processor.AddValue(1, XmlPath, PropertyValue[i]);
+
+    while(processor.Initialize(ManagerID) = 0)
+    {
+    	Delay(100);
+    }
+}

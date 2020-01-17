@@ -67,6 +67,7 @@
     <Compile Include="SimplBool.cs" />
     <Compile Include="Xml\AnalogElement.cs" />
     <Compile Include="Xml\AnalogProcessor.cs" />
+    <Compile Include="Xml\AnalogPropertyInterlock.cs" />
     <Compile Include="Xml\Debug.cs" />
     <Compile Include="Xml\DigitalElement.cs">
     </Compile>
@@ -75,11 +76,13 @@
     <Compile Include="Xml\IElement.cs" />
     <Compile Include="Xml\ProcessorBase.cs" />
     <Compile Include="Xml\ProgressEventArgs.cs" />
+    <Compile Include="Xml\SerialPropertyInterlock.cs" />
     <Compile Include="Xml\SerialElement.cs" />
     <Compile Include="Xml\SerialProcessor.cs" />
     <Compile Include="Xml\SignedAnalogElement.cs" />
     <Compile Include="Xml\Manager.cs">
     </Compile>
+    <Compile Include="Xml\SignedAnalogPropertyInterlock.cs" />
     <Compile Include="Xml\SignedAnalogProcessor.cs" />
     <Compile Include="Xml\XmlBuilder.cs" />
     <None Include="Properties\ControlSystem.cfg" />
