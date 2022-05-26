@@ -6,11 +6,11 @@ When I first ran performance tests with this code, I had about 500 attributes I 
 
 More in-depth documentation can be found in the help files for each module.
 
-[Elegant XML - Manager](https://github.com/ProfessorAire/ElegantXML-Crestron/blob/master/Docs/Elegant%20XML%20-%20Manager%20v1.0.pdf)  
-[Elegant XML - Analog Values](https://github.com/ProfessorAire/ElegantXML-Crestron/blob/master/Docs/Elegant%20XML%20-%20Analog%20Values%20v1.0.pdf)  
-[Elegant XML - Signed Analog Values](https://github.com/ProfessorAire/ElegantXML-Crestron/blob/master/Docs/Elegant%20XML%20-%20Signed%20Analog%20Values%20v1.0.pdf)  
-[Elegant XML - Serial Values](https://github.com/ProfessorAire/ElegantXML-Crestron/blob/master/Docs/Elegant%20XML%20-%20Serial%20Values%20v1.0.pdf)  
-[Elegant XML - Digital Values](https://github.com/ProfessorAire/ElegantXML-Crestron/blob/master/Docs/Elegant%20XML%20-%20Digital%20Values%20v1.0.pdf)  
+[Elegant XML - Manager](https://github.com/ProfessorAire/ElegantXML-Crestron/blob/master/Docs/Elegant%20XML%20-%20Manager.pdf)  
+[Elegant XML - Analog Values](https://github.com/ProfessorAire/ElegantXML-Crestron/blob/master/Docs/Elegant%20XML%20-%20Analog%20Values.pdf)  
+[Elegant XML - Signed Analog Values](https://github.com/ProfessorAire/ElegantXML-Crestron/blob/master/Docs/Elegant%20XML%20-%20Signed%20Analog%20Values.pdf)  
+[Elegant XML - Serial Values](https://github.com/ProfessorAire/ElegantXML-Crestron/blob/master/Docs/Elegant%20XML%20-%20Serial%20Values.pdf)  
+[Elegant XML - Digital Values](https://github.com/ProfessorAire/ElegantXML-Crestron/blob/master/Docs/Elegant%20XML%20-%20Digital%20Values.pdf)  
 [Elegant XML - Analog Property Interlock](https://github.com/ProfessorAire/ElegantXML-Crestron/blob/v1.4/Docs/Elegant%20XML%20-%20Analog%20Property%20Interlock.pdf)  
 [Elegant XML - Serial Property Interlock](https://github.com/ProfessorAire/ElegantXML-Crestron/blob/master/Docs/Elegant%20XML%20-%20Serial%20Property%20Interlock.pdf)  
 [Elegant XML - Signed Analog Property Interlock](https://github.com/ProfessorAire/ElegantXML-Crestron/blob/master/Docs/Elegant%20XML%20-%20Signed%20Analog%20Property%20Interlock.pdf)  
